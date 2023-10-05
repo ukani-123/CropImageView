@@ -11,6 +11,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.cropimageview.Adapter.bdayAdapter;
+import com.example.cropimageview.Helper.DataBinder;
 import com.example.cropimageview.R;
 public class StickerFragment extends Fragment {
 
@@ -24,7 +26,7 @@ public class StickerFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         recyclerView = view.findViewById(R.id.stickerRcv);
-
+       // recyclerView.setAdapter(new bdayAdapter());
     }
 
     @Override

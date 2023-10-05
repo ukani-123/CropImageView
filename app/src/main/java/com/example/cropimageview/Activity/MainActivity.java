@@ -25,11 +25,13 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager.widget.ViewPager;
 
 import com.commit451.nativestackblur.NativeStackBlur;
 import com.example.cropimageview.Adapter.AdjustAdapter;
 import com.example.cropimageview.Adapter.FilterAdapter;
 import com.example.cropimageview.Adapter.ToolsAdapter;
+import com.example.cropimageview.Helper.DataBinder;
 import com.example.cropimageview.Helper.FocusImageView;
 import com.example.cropimageview.Helper.SplashSticker;
 import com.example.cropimageview.Helper.SplashView;
@@ -56,6 +58,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     TextView progresses;
     SplashView splashView;
     StickerView stickerView;
+    ViewPager viewPager;
     Bitmap mOperationalBitmap = null;
 
     @SuppressLint("MissingInflatedId")
@@ -69,8 +72,10 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        DataBinder.listAssetFiles(this,"Sticker");
 
         resultIv = findViewById(R.id.resultIv);
+        viewPager = findViewById(R.id.viewPager);
         done = (ImageView) findViewById(R.id.Done);
         stickerView = findViewById(R.id.stickerView);
         splashView = findViewById(R.id.splashView);
@@ -218,12 +223,15 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                 }
                 else  if (position == 6){
                     stickerView.setVisibility(View.VISIBLE);
+                    viewPager.setVisibility(View.VISIBLE);
                     splashView.setVisibility(View.GONE);
                     sbSharp.setVisibility(View.GONE);
                     sbTemp.setVisibility(View.GONE);
                     sbContrast.setVisibility(View.GONE);
                     sbSaturation.setVisibility(View.GONE);
                     sbBrightness.setVisibility(View.GONE);
+
+                    Toast.makeText(MainActivity.this, ""+DataBinder.getStickerPathsList(), Toast.LENGTH_SHORT).show();
                 }
             }
         }));

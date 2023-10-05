@@ -1,14 +1,16 @@
-package com.example.cropimageview.Helper;
+package com.example.cropimageview.model;
 
 import java.util.ArrayList;
+import java.util.List;
 
-public class paths {
+public class StickerPaths {
 
     String cateName;
-    ArrayList<String> paths;
+    List<String> paths;
 
-    public paths(String cateName) {
+    public StickerPaths(String cateName, List<String> paths) {
         this.cateName = cateName;
+        this.paths = paths;
     }
 
     public String getCateName() {
@@ -19,7 +21,7 @@ public class paths {
         this.cateName = cateName;
     }
 
-    public ArrayList<String> getPaths() {
+    public List<String> getPaths() {
         return paths;
     }
 
