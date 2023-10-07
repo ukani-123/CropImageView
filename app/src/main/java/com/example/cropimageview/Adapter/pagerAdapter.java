@@ -8,27 +8,33 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
 
 import com.example.cropimageview.Fragment.StickerFragment;
+import com.example.cropimageview.Helper.DataBinder;
+import com.example.cropimageview.model.StickerPaths;
+
+import java.util.List;
 
 public class pagerAdapter extends FragmentPagerAdapter {
     Context context;
+    List<StickerPaths> stickerCat;
+
     public pagerAdapter(@NonNull FragmentManager fm, Context context) {
         super(fm);
         this.context = context;
+        stickerCat = DataBinder.getStickerPathsList();
     }
 
     @NonNull
     @Override
     public Fragment getItem(int position) {
-        if (position == 0) return new StickerFragment();
-        return null;
+        return StickerFragment.getInstance(stickerCat.get(position).getPaths());
     }
 
     @Override
     public int getCount() {
-        return 2;
+        return stickerCat.size();
     }
+
     public CharSequence getPageTitle(int position) {
-        if (position == 0) return "Birthday";
-        else return "Emoji";
+        return stickerCat.get(position).getCateName();
     }
 }

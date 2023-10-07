@@ -25,26 +25,20 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder
     Bitmap bitmap;
     int selectedItem = -1;
     Filter filter;
-
-
     public void setBitmap(Bitmap bitmap) {
         this.bitmap = bitmap;
         notifyDataSetChanged();
     }
-
     public FilterAdapter(Context context, ArrayList<ColorFilter> colorFilterArrayList, Filter filter) {
         this.context = context;
-
         this.colorFilterArrayList = colorFilterArrayList;
         this.filter = filter;
     }
-
     @NonNull
     @Override
     public FilterAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         return new ViewHolder(LayoutInflater.from(context).inflate(R.layout.rcv_ffilter,parent,false));
     }
-
     @Override
     public void onBindViewHolder(@NonNull FilterAdapter.ViewHolder holder, @SuppressLint("RecyclerView") int position) {
         holder.imageView.setImageBitmap(bitmap);
@@ -54,9 +48,6 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder
         } else {
             holder.imageView.setBackgroundResource(0);
         }
-
-
-
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -68,12 +59,10 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder
             }
         });
     }
-
     @Override
     public int getItemCount() {
         return colorFilterArrayList.size();
     }
-
     public class ViewHolder extends RecyclerView.ViewHolder {
         ImageView imageView;
         public ViewHolder(@NonNull View itemView) {

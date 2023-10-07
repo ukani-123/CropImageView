@@ -2,7 +2,9 @@ package com.example.cropimageview.Activity;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.res.AssetManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
@@ -24,6 +26,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.ViewPager;
 
@@ -31,23 +34,32 @@ import com.commit451.nativestackblur.NativeStackBlur;
 import com.example.cropimageview.Adapter.AdjustAdapter;
 import com.example.cropimageview.Adapter.FilterAdapter;
 import com.example.cropimageview.Adapter.ToolsAdapter;
+import com.example.cropimageview.Adapter.pagerAdapter;
+import com.example.cropimageview.Fragment.StickerFragment;
+import com.example.cropimageview.Helper.BitmapStickerIcon;
 import com.example.cropimageview.Helper.DataBinder;
-import com.example.cropimageview.Helper.FocusImageView;
+import com.example.cropimageview.Helper.DeleteIconEvent;
+import com.example.cropimageview.Helper.DrawableSticker;
+import com.example.cropimageview.Helper.FlipHorizontallyEvent;
 import com.example.cropimageview.Helper.SplashSticker;
 import com.example.cropimageview.Helper.SplashView;
 import com.example.cropimageview.Helper.StickerView;
+import com.example.cropimageview.Helper.ZoomIconEvent;
 import com.example.cropimageview.Interface.Adjust;
+import com.example.cropimageview.Interface.ClickSticker;
 import com.example.cropimageview.Interface.Filter;
 import com.example.cropimageview.Interface.Tools;
 import com.example.cropimageview.R;
+import com.google.android.material.tabs.TabLayout;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener {
+public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener, ClickSticker {
     private ImageView resultIv, close, reset, done;
     RecyclerView subRecyclerView, mainRecyclerView, adjustmentRcv;
     Bitmap mOriginalBitmap;
@@ -59,6 +71,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     SplashView splashView;
     StickerView stickerView;
     ViewPager viewPager;
+    TabLayout tabLayout;
     Bitmap mOperationalBitmap = null;
 
     @SuppressLint("MissingInflatedId")
@@ -72,9 +85,10 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        DataBinder.listAssetFiles(this,"Sticker");
+        DataBinder.listAssetFiles(this, "Sticker");
 
         resultIv = findViewById(R.id.resultIv);
+        tabLayout = findViewById(R.id.tabLayout);
         viewPager = findViewById(R.id.viewPager);
         done = (ImageView) findViewById(R.id.Done);
         stickerView = findViewById(R.id.stickerView);
@@ -106,6 +120,26 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         data.add(new PorterDuffColorFilter(Color.WHITE, PorterDuff.Mode.MULTIPLY));
         data.add(new PorterDuffColorFilter(Color.CYAN, PorterDuff.Mode.MULTIPLY));
 
+        StickerFragment.setClickSticker(this);
+
+
+        BitmapStickerIcon deleteIcon = new BitmapStickerIcon(ContextCompat.getDrawable(this,
+                com.example.cropimageview.R.drawable.sticker_ic_close_white_18dp),
+                BitmapStickerIcon.LEFT_TOP);
+        deleteIcon.setIconEvent(new DeleteIconEvent());
+
+        BitmapStickerIcon zoomIcon = new BitmapStickerIcon(ContextCompat.getDrawable(this,
+                com.example.cropimageview.R.drawable.sticker_ic_scale_white_18dp),
+                BitmapStickerIcon.RIGHT_BOTOM);
+        zoomIcon.setIconEvent(new ZoomIconEvent());
+
+        BitmapStickerIcon flipIcon = new BitmapStickerIcon(ContextCompat.getDrawable(this,
+                com.example.cropimageview.R.drawable.sticker_ic_flip_white_18dp),
+                BitmapStickerIcon.RIGHT_TOP);
+        flipIcon.setIconEvent(new FlipHorizontallyEvent());
+
+
+
 
         subRecyclerView.setAdapter(filterAdapter = new FilterAdapter(MainActivity.this, data, new Filter() {
             @Override
@@ -117,8 +151,6 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         done.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-             /*   resultIv.setDrawingCacheEnabled(true);*/
-             /*   Bitmap mEditedBitmap = resultIv.getDrawingCache();*/
                 saveImageToGallery(MainActivity.this, splashView.getBitmap(mOperationalBitmap));
                 resultIv.setDrawingCacheEnabled(false);
                 Toast.makeText(MainActivity.this, "Image Save Successfully", Toast.LENGTH_SHORT).show();
@@ -215,15 +247,19 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                     SplashSticker splashSticker = new SplashSticker(((BitmapDrawable) getDrawable(R.drawable.blur_1_mask)).getBitmap(), ((BitmapDrawable) getDrawable(R.drawable.blur_1_shadow)).getBitmap());
                     splashView.addSticker(splashSticker);
 
+                    stickerView.setLocked(true);
                     sbSharp.setVisibility(View.GONE);
                     sbTemp.setVisibility(View.GONE);
                     sbContrast.setVisibility(View.GONE);
                     sbSaturation.setVisibility(View.GONE);
                     sbBrightness.setVisibility(View.GONE);
-                }
-                else  if (position == 6){
+                } else if (position == 6) {
                     stickerView.setVisibility(View.VISIBLE);
                     viewPager.setVisibility(View.VISIBLE);
+                    tabLayout.setVisibility(View.VISIBLE);
+                    viewPager.setAdapter(new pagerAdapter(getSupportFragmentManager(), MainActivity.this));
+                    tabLayout.setupWithViewPager(viewPager);
+                    stickerView.setLocked(false    );
                     splashView.setVisibility(View.GONE);
                     sbSharp.setVisibility(View.GONE);
                     sbTemp.setVisibility(View.GONE);
@@ -231,7 +267,6 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                     sbSaturation.setVisibility(View.GONE);
                     sbBrightness.setVisibility(View.GONE);
 
-                    Toast.makeText(MainActivity.this, ""+DataBinder.getStickerPathsList(), Toast.LENGTH_SHORT).show();
                 }
             }
         }));
@@ -367,5 +402,25 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
         mOperationalBitmap = ((BitmapDrawable) resultIv.getDrawable()).getBitmap();
+    }
+
+    @Override
+    public void onClickSticker(String path) {
+        AssetManager assetManager = getAssets();
+
+        InputStream istr;
+        Bitmap bitmap = null;
+        try {
+            istr = assetManager.open(path);
+            bitmap = BitmapFactory.decodeStream(istr);
+        } catch (IOException e) {
+            // handle exception
+        }
+
+
+        stickerView.addSticker(new DrawableSticker(new BitmapDrawable(getResources(), bitmap)));
+        tabLayout.setVisibility(View.GONE);
+        viewPager.setVisibility(View.GONE);
+
     }
 }

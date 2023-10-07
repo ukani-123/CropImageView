@@ -67,6 +67,7 @@ public class StickerView extends RelativeLayout {
 
     public static final int FLIP_HORIZONTALLY = 1;
     public static final int FLIP_VERTICALLY = 1 << 1;
+    private final List<BitmapStickerIcon> icons = new ArrayList<>(4);
 
     private final List<Sticker> stickers = new ArrayList<>();
 
@@ -169,29 +170,23 @@ public class StickerView extends RelativeLayout {
     }
 
     public void configDefaultIcons() {
-       /* BitmapStickerIcon deleteIcon = new BitmapStickerIcon(
-                ContextCompat.getDrawable(getContext(), R.drawable.border_cancel_icon),
-                BitmapStickerIcon.LEFT_TOP, BitmapStickerIcon.REMOVE);
+        BitmapStickerIcon deleteIcon = new BitmapStickerIcon(
+                ContextCompat.getDrawable(getContext(), R.drawable.sticker_ic_close_white_18dp),
+                BitmapStickerIcon.LEFT_TOP);
         deleteIcon.setIconEvent(new DeleteIconEvent());
         BitmapStickerIcon zoomIcon = new BitmapStickerIcon(
-                ContextCompat.getDrawable(getContext(), R.drawable.border_move_icon),
-                BitmapStickerIcon.RIGHT_BOTOM, BitmapStickerIcon.ZOOM);
+                ContextCompat.getDrawable(getContext(), R.drawable.sticker_ic_scale_white_18dp),
+                    BitmapStickerIcon.RIGHT_BOTOM);
         zoomIcon.setIconEvent(new ZoomIconEvent());
         BitmapStickerIcon flipIcon = new BitmapStickerIcon(
-                ContextCompat.getDrawable(getContext(), R.drawable.border_flip_icon),
-                BitmapStickerIcon.RIGHT_TOP, BitmapStickerIcon.FLIP);
+                ContextCompat.getDrawable(getContext(), R.drawable.sticker_ic_flip_white_18dp),
+                BitmapStickerIcon.RIGHT_TOP);
         flipIcon.setIconEvent(new FlipHorizontallyEvent());
-
-        BitmapStickerIcon editIcon = new BitmapStickerIcon(
-                ContextCompat.getDrawable(getContext(), R.drawable.border_edit_icon),
-                BitmapStickerIcon.LEFT_BOTTOM, BitmapStickerIcon.EDIT);
-        editIcon.setIconEvent(new FlipHorizontallyEvent());
 
         icons.clear();
         icons.add(deleteIcon);
         icons.add(zoomIcon);
         icons.add(flipIcon);
-        icons.add(editIcon);*/
     }
 
     /**

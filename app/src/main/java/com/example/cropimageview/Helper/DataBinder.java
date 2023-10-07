@@ -23,13 +23,15 @@ public class DataBinder {
             String[] Paths = c.getAssets().list(rootPath);
             if (Paths.length > 0) {
                 for (String file : Paths) {
-                    String path = rootPath + "/" + file;
-                    if (new File(path).isDirectory()) {
+
+                    String filename = rootPath + (rootPath.isEmpty() ? "" : "/") + file;
+                    String[] tmp = c.getAssets().list(filename);
+                    if(tmp.length>0) {
                         StickerPaths stickerPaths = new StickerPaths(file, new ArrayList<>());
-                        stickerPaths.getPaths().addAll(listAssetFiles(c, path));
+                        stickerPaths.getPaths().addAll(listAssetFiles(c, filename));
                         stickerPathsList.add(stickerPaths);
-                    } else {
-                        files.add(path);
+                    }else {
+                        files.add(filename);
                     }
                 }
             }
@@ -40,3 +42,4 @@ public class DataBinder {
     }
 
 }
+
