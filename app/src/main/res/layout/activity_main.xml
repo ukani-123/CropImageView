@@ -72,7 +72,7 @@
             android:max="200"
             android:min="50"
             android:progress="0"
-            android:visibility="visible" />
+            android:visibility="gone" />
 
         <SeekBar
             android:id="@+id/sbContrast"

@@ -87,8 +87,8 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         }
         DataBinder.listAssetFiles(this, "Sticker");
 
-        resultIv = findViewById(R.id.resultIv);
         tabLayout = findViewById(R.id.tabLayout);
+        resultIv = findViewById(R.id.resultIv);
         viewPager = findViewById(R.id.viewPager);
         done = (ImageView) findViewById(R.id.Done);
         stickerView = findViewById(R.id.stickerView);
@@ -137,17 +137,12 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                 com.example.cropimageview.R.drawable.sticker_ic_flip_white_18dp),
                 BitmapStickerIcon.RIGHT_TOP);
         flipIcon.setIconEvent(new FlipHorizontallyEvent());
-
-
-
-
         subRecyclerView.setAdapter(filterAdapter = new FilterAdapter(MainActivity.this, data, new Filter() {
             @Override
             public void onClickItem(ColorFilter filter) {
                 resultIv.setColorFilter(filter);
             }
         }));
-
         done.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -156,7 +151,6 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                 Toast.makeText(MainActivity.this, "Image Save Successfully", Toast.LENGTH_SHORT).show();
             }
         });
-
         reset.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -171,8 +165,6 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                 mOperationalBitmap = mOriginalBitmap;
             }
         });
-
-
         filterAdapter.setBitmap(mOriginalBitmap);
 
         ArrayList<Integer> toolsList = new ArrayList<>();
@@ -207,6 +199,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                 if (position == 0) {
                     sbBrightness.setVisibility(View.VISIBLE);
                     sbContrast.setVisibility(View.GONE);
+                    stickerView.setLocked(false);
                     sbSaturation.setVisibility(View.GONE);
                     sbSharp.setVisibility(View.GONE);
                     sbTemp.setVisibility(View.GONE);
@@ -216,10 +209,12 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                     sbBrightness.setVisibility(View.GONE);
                     sbTemp.setVisibility(View.GONE);
                     sbSharp.setVisibility(View.GONE);
+                    stickerView.setLocked(false);
                     sbSaturation.setVisibility(View.GONE);
                     splashView.setVisibility(View.GONE);
                 } else if (position == 2) {
                     sbSaturation.setVisibility(View.VISIBLE);
+                    stickerView.setLocked(false);
                     sbBrightness.setVisibility(View.GONE);
                     sbTemp.setVisibility(View.GONE);
                     sbSharp.setVisibility(View.GONE);
@@ -227,6 +222,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                     splashView.setVisibility(View.GONE);
                 } else if (position == 3) {
                     sbTemp.setVisibility(View.VISIBLE);
+                    stickerView.setLocked(false);
                     sbContrast.setVisibility(View.GONE);
                     sbSharp.setVisibility(View.GONE);
                     sbSaturation.setVisibility(View.GONE);
@@ -235,6 +231,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                 } else if (position == 4) {
                     sbSharp.setVisibility(View.VISIBLE);
                     sbTemp.setVisibility(View.GONE);
+                    stickerView.setLocked(false);
                     sbContrast.setVisibility(View.GONE);
                     sbSaturation.setVisibility(View.GONE);
                     sbBrightness.setVisibility(View.GONE);
@@ -243,7 +240,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                     splashView.setVisibility(View.VISIBLE);
                     splashView.setCurrentSplashMode(SplashView.SHAPE);
                     splashView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
-                    splashView.setImageBitmap(NativeStackBlur.process(mOperationalBitmap, 150));
+                    splashView.setImageBitmap(NativeStackBlur.process(mOperationalBitmap, 100));
                     SplashSticker splashSticker = new SplashSticker(((BitmapDrawable) getDrawable(R.drawable.blur_1_mask)).getBitmap(), ((BitmapDrawable) getDrawable(R.drawable.blur_1_shadow)).getBitmap());
                     splashView.addSticker(splashSticker);
 
@@ -259,7 +256,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                     tabLayout.setVisibility(View.VISIBLE);
                     viewPager.setAdapter(new pagerAdapter(getSupportFragmentManager(), MainActivity.this));
                     tabLayout.setupWithViewPager(viewPager);
-                    stickerView.setLocked(false    );
+                    stickerView.setLocked(false);
                     splashView.setVisibility(View.GONE);
                     sbSharp.setVisibility(View.GONE);
                     sbTemp.setVisibility(View.GONE);
@@ -291,7 +288,6 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
             }
         });
     }
-
     private void saveImageToGallery(Context context, Bitmap bitmap) {
         String fileName = "Image_" + System.currentTimeMillis() + ".jpg";
         File imageFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), fileName);
@@ -403,7 +399,6 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     public void onStopTrackingTouch(SeekBar seekBar) {
         mOperationalBitmap = ((BitmapDrawable) resultIv.getDrawable()).getBitmap();
     }
-
     @Override
     public void onClickSticker(String path) {
         AssetManager assetManager = getAssets();
@@ -414,9 +409,8 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
             istr = assetManager.open(path);
             bitmap = BitmapFactory.decodeStream(istr);
         } catch (IOException e) {
-            // handle exception
+            e.printStackTrace();
         }
-
 
         stickerView.addSticker(new DrawableSticker(new BitmapDrawable(getResources(), bitmap)));
         tabLayout.setVisibility(View.GONE);

@@ -1,5 +1,4 @@
 package com.example.cropimageview.Activity;
-
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -13,7 +12,6 @@ import com.yalantis.ucrop.UCrop;
 
 import java.io.File;
 import java.util.UUID;
-
 public class CropImageActivity extends AppCompatActivity {
     String result;
     Uri imgUri;
@@ -21,11 +19,8 @@ public class CropImageActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_crop_image);
-
         passIntent();
-
         UCrop.Options options = new UCrop.Options();
-
         String uri = new StringBuilder(UUID.randomUUID().toString()).append(".jpg").toString();
         UCrop.of(imgUri,Uri.fromFile(new File(getCacheDir(),uri)))
                 .withOptions(options)
@@ -52,7 +47,7 @@ public class CropImageActivity extends AppCompatActivity {
             finish();
         }else if (resultCode ==UCrop.RESULT_ERROR){
             final Throwable error = UCrop.getError(data);
-            Toast.makeText(this, "not done", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "not done"+error.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 }

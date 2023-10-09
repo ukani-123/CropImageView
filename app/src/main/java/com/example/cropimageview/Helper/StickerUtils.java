@@ -32,7 +32,6 @@ class StickerUtils {
     } catch (IOException e) {
       e.printStackTrace();
     }
-
     Log.e(TAG, "saveImageToGallery: the path of bmp is " + file.getAbsolutePath());
     return file;
   }
