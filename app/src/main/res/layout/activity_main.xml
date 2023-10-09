@@ -44,7 +44,7 @@
             <com.example.cropimageview.Helper.StickerView
                 android:id="@+id/stickerView"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="match_parent  "
                 android:layout_centerInParent="true"
                 android:layout_gravity="center"
                 app:showBorder="true"
@@ -123,7 +123,20 @@
             android:min="-50"
             android:progress="0"
             android:visibility="gone" />
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tabLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            app:layout_constraintBottom_toTopOf="@+id/viewPager"
+            tools:ignore="MissingConstraints" />
 
+        <androidx.viewpager.widget.ViewPager
+            android:id="@+id/viewPager"
+            android:layout_width="match_parent"
+            android:layout_height="250dp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/mainRecyclerView"
@@ -185,18 +198,5 @@
         </LinearLayout>
     </LinearLayout>
 
-    <com.google.android.material.tabs.TabLayout
-        android:id="@+id/tabLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@+id/viewPager"
-        tools:ignore="MissingConstraints" />
 
-    <androidx.viewpager.widget.ViewPager
-        android:id="@+id/viewPager"
-        android:layout_width="match_parent"
-        android:layout_height="400dp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

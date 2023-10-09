@@ -58,6 +58,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener, ClickSticker {
     private ImageView resultIv, close, reset, done;
@@ -119,24 +120,22 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         data.add(new PorterDuffColorFilter(Color.BLUE, PorterDuff.Mode.MULTIPLY));
         data.add(new PorterDuffColorFilter(Color.WHITE, PorterDuff.Mode.MULTIPLY));
         data.add(new PorterDuffColorFilter(Color.CYAN, PorterDuff.Mode.MULTIPLY));
-
         StickerFragment.setClickSticker(this);
-
 
         BitmapStickerIcon deleteIcon = new BitmapStickerIcon(ContextCompat.getDrawable(this,
                 com.example.cropimageview.R.drawable.sticker_ic_close_white_18dp),
                 BitmapStickerIcon.LEFT_TOP);
         deleteIcon.setIconEvent(new DeleteIconEvent());
-
         BitmapStickerIcon zoomIcon = new BitmapStickerIcon(ContextCompat.getDrawable(this,
                 com.example.cropimageview.R.drawable.sticker_ic_scale_white_18dp),
                 BitmapStickerIcon.RIGHT_BOTOM);
         zoomIcon.setIconEvent(new ZoomIconEvent());
-
         BitmapStickerIcon flipIcon = new BitmapStickerIcon(ContextCompat.getDrawable(this,
                 com.example.cropimageview.R.drawable.sticker_ic_flip_white_18dp),
                 BitmapStickerIcon.RIGHT_TOP);
         flipIcon.setIconEvent(new FlipHorizontallyEvent());
+        stickerView.setIcons(Arrays.asList(deleteIcon, zoomIcon, flipIcon));
+        stickerView.setConstrained(true);
         subRecyclerView.setAdapter(filterAdapter = new FilterAdapter(MainActivity.this, data, new Filter() {
             @Override
             public void onClickItem(ColorFilter filter) {
@@ -263,7 +262,6 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                     sbContrast.setVisibility(View.GONE);
                     sbSaturation.setVisibility(View.GONE);
                     sbBrightness.setVisibility(View.GONE);
-
                 }
             }
         }));
@@ -272,7 +270,6 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         sbSaturation.setOnSeekBarChangeListener(this);
         sbTemp.setOnSeekBarChangeListener(this);
         sbSharp.setOnSeekBarChangeListener(this);
-
         close.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -291,38 +288,29 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     private void saveImageToGallery(Context context, Bitmap bitmap) {
         String fileName = "Image_" + System.currentTimeMillis() + ".jpg";
         File imageFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), fileName);
-
         try {
             OutputStream outputStream = new FileOutputStream(imageFile);
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
             outputStream.flush();
             outputStream.close();
-
-            // Notify the MediaStore about the new image
             MediaScannerConnection.scanFile(context, new String[]{imageFile.getAbsolutePath()}, null, null);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
     private Bitmap applyColorMatrix(Bitmap source, ColorMatrix colorMatrix) {
         Bitmap result = Bitmap.createBitmap(source.getWidth(), source.getHeight(), source.getConfig());
-
         Paint paint = new Paint();
         paint.setColorFilter(new ColorMatrixColorFilter(colorMatrix));
-
         Canvas canvas = new Canvas(result);
         canvas.drawBitmap(source, 0, 0, paint);
-
         return result;
     }
-
     private Bitmap applyBrightness(Bitmap source, float brightness) {
         ColorMatrix colorMatrix = new ColorMatrix();
         colorMatrix.set(new float[]{1, 0, 0, 0, brightness * 255, 0, 1, 0, 0, brightness * 255, 0, 0, 1, 0, brightness * 255, 0, 0, 0, 1, 0});
         return applyColorMatrix(source, colorMatrix);
     }
-
     private Bitmap applyContrast(Bitmap source, float contrast) {
         ColorMatrix colorMatrix = new ColorMatrix();
         float scale = contrast + 1f;
@@ -330,27 +318,22 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         colorMatrix.set(new float[]{scale, 0, 0, 0, translate, 0, scale, 0, 0, translate, 0, 0, scale, 0, translate, 0, 0, 0, 1, 0});
         return applyColorMatrix(source, colorMatrix);
     }
-
     private Bitmap applySaturation(Bitmap source, float saturation) {
         ColorMatrix colorMatrix = new ColorMatrix();
         colorMatrix.setSaturation(saturation);
         return applyColorMatrix(source, colorMatrix);
     }
-
     private Bitmap applyTemperature(Bitmap source, float temperature) {
         float rT = temperature > 0 ? temperature : 0;
         float bT = temperature < 0 ? -temperature : 0;
-
         ColorMatrix colorMatrix = new ColorMatrix();
         colorMatrix.set(new float[]{1, 0, 0, 0, rT * 255, 0, 1, 0, 0, 0, 0, 0, 1, 0, bT * 255, 0, 0, 0, 1, 0});
         return applyColorMatrix(source, colorMatrix);
     }
-
     private Bitmap applySharpness(Bitmap source, float sharpness) {
         float[] sharpnessMatrix = {-1, -1, -1, -1, 9 + sharpness, -1, -1, -1, -1};
         return applyConvolutionFilter(source, sharpnessMatrix);
     }
-
     private Bitmap applyConvolutionFilter(Bitmap source, float[] kernel) {
         Bitmap result = Bitmap.createBitmap(source.getWidth(), source.getHeight(), source.getConfig());
         android.renderscript.RenderScript rs = android.renderscript.RenderScript.create(this);
@@ -367,7 +350,6 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         rs.destroy();
         return result;
     }
-
     @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
         if (fromUser) {
@@ -389,12 +371,8 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
             }
         }
     }
-
     @Override
-    public void onStartTrackingTouch(SeekBar seekBar) {
-
-    }
-
+    public void onStartTrackingTouch(SeekBar seekBar) {}
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
         mOperationalBitmap = ((BitmapDrawable) resultIv.getDrawable()).getBitmap();
@@ -402,7 +380,6 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     @Override
     public void onClickSticker(String path) {
         AssetManager assetManager = getAssets();
-
         InputStream istr;
         Bitmap bitmap = null;
         try {
@@ -411,10 +388,8 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         } catch (IOException e) {
             e.printStackTrace();
         }
-
         stickerView.addSticker(new DrawableSticker(new BitmapDrawable(getResources(), bitmap)));
         tabLayout.setVisibility(View.GONE);
         viewPager.setVisibility(View.GONE);
-
     }
 }
