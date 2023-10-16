@@ -17,13 +17,9 @@ import androidx.annotation.Nullable;
 public abstract class Sticker {
 
   @IntDef(flag = true, value = {
-      Position.CENTER, Position.TOP, Position.BOTTOM, Position.LEFT, Position.RIGHT
-  }) @Retention(RetentionPolicy.SOURCE) public @interface Position {
+      Position.CENTER}) @Retention(RetentionPolicy.SOURCE) public @interface Position {
     int CENTER = 1;
-    int TOP = 1 << 1;
-    int LEFT = 1 << 2;
-    int RIGHT = 1 << 3;
-    int BOTTOM = 1 << 4;
+
   }
 
   private final float[] matrixValues = new float[9];

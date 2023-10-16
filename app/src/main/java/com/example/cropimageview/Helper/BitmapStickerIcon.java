@@ -18,8 +18,7 @@ public class BitmapStickerIcon extends DrawableSticker implements StickerIconEve
         return 0;
     }
     @IntDef({ LEFT_TOP, RIGHT_TOP, LEFT_BOTTOM, RIGHT_BOTOM }) @Retention(RetentionPolicy.SOURCE)
-  public @interface Gravity {
-  }
+  public @interface Gravity {}
   public static final int LEFT_TOP = 0;
   public static final int RIGHT_TOP = 1;
   public static final int LEFT_BOTTOM = 2;
@@ -66,7 +65,6 @@ public class BitmapStickerIcon extends DrawableSticker implements StickerIconEve
     if (iconEvent != null) {
       iconEvent.onActionDown(stickerView, event);
     }
-
   }
   @Override public void onActionMove(StickerView stickerView, MotionEvent event) {
     if (iconEvent != null) {

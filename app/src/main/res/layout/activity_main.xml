@@ -29,40 +29,72 @@
                 android:layout_marginTop="30dp"
                 android:layout_marginEnd="30dp"
                 android:layout_marginBottom="30dp"
-                android:adjustViewBounds="true" />
+                android:adjustViewBounds="true"
+                android:scaleType="centerCrop" />
 
+
+            <com.example.cropimageview.Helper.StickerView
+                android:id="@+id/stickerView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_centerInParent="true"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginStart="30dp"
+                android:layout_marginTop="30dp"
+                android:layout_marginEnd="30dp"
+                android:layout_marginBottom="30dp"
+                android:adjustViewBounds="true"
+                android:scaleType="centerCrop"
+                app:showBorder="true"
+                app:showIcons="true" />
+
+
+            <EditText
+                android:id="@+id/edtText"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_centerInParent="true"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginStart="30dp"
+                android:layout_marginTop="30dp"
+                android:layout_marginEnd="30dp"
+                android:layout_marginBottom="30dp"
+                android:adjustViewBounds="true"
+                android:scaleType="centerCrop"
+                android:visibility="gone"
+                app:showBorder="true"
+                app:showIcons="true" />
+            <TextView
+                android:id="@+id/txtView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_centerInParent="true"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginStart="30dp"
+                android:layout_marginTop="30dp"
+                android:layout_marginEnd="30dp"
+                android:layout_marginBottom="30dp"
+                android:adjustViewBounds="true"
+                android:scaleType="centerCrop"
+                android:visibility="gone"
+                app:showBorder="true"
+                app:showIcons="true" />
             <com.example.cropimageview.Helper.SplashView
                 android:id="@+id/splashView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
                 android:layout_gravity="center_horizontal"
-                android:layout_margin="30dp"
+                android:layout_marginStart="30dp"
+                android:layout_marginTop="30dp"
+                android:layout_marginEnd="30dp"
+                android:layout_marginBottom="30dp"
                 android:adjustViewBounds="true"
-                android:visibility="gone " />
+                android:scaleType="centerCrop"
+                android:visibility="gone" />
 
-            <com.example.cropimageview.Helper.StickerView
-                android:id="@+id/stickerView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent  "
-                android:layout_centerInParent="true"
-                android:layout_gravity="center"
-                app:showBorder="true"
-                app:showIcons="true" />
 
         </FrameLayout>
-
-
-        <TextView
-            android:id="@+id/txtSeekbar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/resultIv"
-            android:layout_centerHorizontal="true"
-            android:text="0"
-            android:textColor="@color/white"
-            android:textSize="18sp" />
-
 
         <SeekBar
             android:id="@+id/sbBrightness"
@@ -123,6 +155,7 @@
             android:min="-50"
             android:progress="0"
             android:visibility="gone" />
+
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/tabLayout"
             android:layout_width="match_parent"
@@ -158,6 +191,26 @@
             tools:listitem="@layout/rcv_ffilter" />
 
         <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/textRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/white"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/text_adapter_item" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/colorRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/white"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/adapter_color_item" />
+
+        <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/adjustmentRcv"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -169,10 +222,12 @@
 
 
         <LinearLayout
+            android:id="@+id/mainBottom"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@color/white"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:visibility="visible">
 
             <ImageView
                 android:id="@+id/close"
@@ -196,7 +251,38 @@
                 android:padding="10dp"
                 android:src="@drawable/ok" />
         </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/txtBottom"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/white"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <ImageView
+                android:id="@+id/closetxt"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:padding="10dp"
+                android:src="@drawable/delete" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="textEditor"
+                android:textSize="20dp" />
+
+            <ImageView
+                android:id="@+id/Donetxt"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_gravity="end"
+                android:padding="10dp"
+                android:src="@drawable/ok" />
+        </LinearLayout>
     </LinearLayout>
-
-
 </androidx.constraintlayout.widget.ConstraintLayout>

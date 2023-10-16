@@ -1,5 +1,4 @@
 package com.example.cropimageview.Helper;
-
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -26,10 +25,6 @@ import com.example.cropimageview.R;
 
 import java.util.Random;
 import java.util.Stack;
-
-
-
-
 public class SplashView extends AppCompatImageView {
     private PointF midPoint = new PointF();
     private Sticker sticker;
@@ -57,42 +52,33 @@ public class SplashView extends AppCompatImageView {
     private boolean showTouchIcon = false;
     private boolean isLock = false;
     private Bitmap bitmap;
-
     public void setCurrentSplashMode(int currentSplashMode) {
         this.currentSplashMode = currentSplashMode;
     }
-
     public void setLock(boolean isLock) {
         this.isLock = isLock;
     }
-
     public SplashView(Context context) {
         super(context);
         init();
     }
-
     public SplashView(Context context, AttributeSet attrs) {
         super(context, attrs);
         init();
 
     }
-
     public SplashView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init();
-
     }
-
     @Override
     public void setImageBitmap(Bitmap bm) {
         super.setImageBitmap(bm);
         setBitmap(bm);
     }
-
     public void setBitmap(Bitmap bm)    {
         bitmap = bm;
     }
-
     private void init() {
         mDrawPaint = new Paint();
         mDrawPaint.setAntiAlias(true);
@@ -104,7 +90,6 @@ public class SplashView extends AppCompatImageView {
         mDrawPaint.setMaskFilter(new BlurMaskFilter(20F, BlurMaskFilter.Blur.NORMAL));
         mDrawPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_OUT));
         mDrawPaint.setStyle(Paint.Style.STROKE);
-
         paintCircle = new Paint();
         paintCircle.setAntiAlias(true);
         paintCircle.setDither(true);
@@ -112,9 +97,7 @@ public class SplashView extends AppCompatImageView {
         paintCircle.setStrokeWidth(dpToPx(getContext(), 2));
         paintCircle.setStyle(Paint.Style.STROKE);
         mPath = new Path();
-
     }
-
     public void updateBrush() {
         mPath = new Path();
         mDrawPaint.setAntiAlias(true);
@@ -128,12 +111,10 @@ public class SplashView extends AppCompatImageView {
         showTouchIcon = false;
         invalidate();
     }
-
     @NonNull
     public void addSticker(@NonNull Sticker sticker) {
         addSticker(sticker, Sticker.Position.CENTER);
     }
-
     public void addSticker(@NonNull final Sticker sticker,
                            final @Sticker.Position int position) {
         if (ViewCompat.isLaidOut(this)) {
@@ -147,50 +128,30 @@ public class SplashView extends AppCompatImageView {
             });
         }
     }
-
     protected void addStickerImmediately(@NonNull Sticker sticker, @Sticker.Position int position) {
         this.sticker = sticker;
         setStickerPosition(sticker, position);
         invalidate();
     }
-
     protected void setStickerPosition(@NonNull Sticker sticker, @Sticker.Position int position) {
         float width = getWidth();
         float height = getHeight();
-
         float scale;
         if (width > height)
             scale = (height * 4 / 5) / sticker.getHeight();
         else
             scale = (width * 4 / 5) / sticker.getWidth();
-
         midPoint.set(0, 0);
         downMatrix.reset();
         moveMatrix.set(downMatrix);
         moveMatrix.postScale(scale, scale);
         int degree = new Random().nextInt(20) - 10;
         moveMatrix.postRotate(degree, midPoint.x, midPoint.y);
-
         float offsetX = width - (int) (sticker.getWidth() * scale);
         float offsetY = height - (int) (sticker.getHeight() * scale);
-        if ((position & Sticker.Position.TOP) > 0) {
-            offsetY /= 4f;
-        } else if ((position & Sticker.Position.BOTTOM) > 0) {
-            offsetY *= 3f / 4f;
-        } else {
-            offsetY /= 2f;
-        }
-        if ((position & Sticker.Position.LEFT) > 0) {
-            offsetX /= 4f;
-        } else if ((position & Sticker.Position.RIGHT) > 0) {
-            offsetX *= 3f / 4f;
-        } else {
-            offsetX /= 2f;
-        }
         moveMatrix.postTranslate(offsetX, offsetY);
         sticker.setMatrix(moveMatrix);
     }
-
     @SuppressLint("CanvasSize")
     @Override
     protected void onDraw(Canvas canvas) {
@@ -207,47 +168,37 @@ public class SplashView extends AppCompatImageView {
             if (showTouchIcon) {
                 canvas.drawCircle(currentX, currentY, brushBitmapSize / 2, paintCircle);
             }
-
         }
     }
-
     protected void drawStickers(Canvas canvas) {
-
         if (sticker != null && sticker.isShow()) {
             sticker.draw(canvas);
         }
-
         invalidate();
     }
-
     protected float calculateDistance(float x1, float y1, float x2, float y2) {
         double x = x1 - x2;
         double y = y1 - y2;
-
         return (float) Math.sqrt(x * x + y * y);
     }
-
     protected float calculateDistance(@Nullable MotionEvent event) {
         if (event == null || event.getPointerCount() < 2) {
             return 0f;
         }
         return calculateDistance(event.getX(0), event.getY(0), event.getX(1), event.getY(1));
     }
-
     protected float calculateRotation(@Nullable MotionEvent event) {
         if (event == null || event.getPointerCount() < 2) {
             return 0f;
         }
         return calculateRotation(event.getX(0), event.getY(0), event.getX(1), event.getY(1));
     }
-
     protected float calculateRotation(float x1, float y1, float x2, float y2) {
         double x = x1 - x2;
         double y = y1 - y2;
         double radians = Math.atan2(y, x);
         return (float) Math.toDegrees(radians);
     }
-
     @NonNull
     protected PointF calculateMidPoint(@Nullable MotionEvent event) {
         if (event == null || event.getPointerCount() < 2) {
@@ -259,19 +210,16 @@ public class SplashView extends AppCompatImageView {
         midPoint.set(x, y);
         return midPoint;
     }
-
     @NonNull
     protected PointF calculateMidPoint() {
         sticker.getMappedCenterPoint(midPoint, point, tmp);
         return midPoint;
     }
-
     protected boolean isInStickerArea(@NonNull Sticker sticker, float downX, float downY) {
         tmp[0] = downX;
         tmp[1] = downY;
         return sticker.contains(tmp);
     }
-
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (!isLock) {
@@ -291,39 +239,29 @@ public class SplashView extends AppCompatImageView {
                     case MotionEvent.ACTION_POINTER_DOWN:
                         oldDistance = calculateDistance(event);
                         oldRotation = calculateRotation(event);
-
                         midPoint = calculateMidPoint(event);
-
                         if (sticker != null && isInStickerArea(sticker, event.getX(1),
                                 event.getY(1))) {
                             currentMode = StickerView.ActionMode.ZOOM_WITH_TWO_FINGER;
                         }
                         break;
-
                     case MotionEvent.ACTION_MOVE:
                         handleCurrentMode(x, y, event);
                         invalidate();
                         break;
-
                     case MotionEvent.ACTION_UP:
                         onTouchUp(event);
                         break;
-
                     case MotionEvent.ACTION_POINTER_UP:
                         currentMode = StickerView.ActionMode.NONE;
                         break;
                 }
-
-
             } catch (Exception e) {
-
             }
             return true;
         }
-
         return false;
     }
-
     protected void constrainSticker(@NonNull Sticker sticker) {
         float moveX = 0;
         float moveY = 0;
@@ -333,23 +271,17 @@ public class SplashView extends AppCompatImageView {
         if (currentCenterPoint.x < 0) {
             moveX = -currentCenterPoint.x;
         }
-
         if (currentCenterPoint.x > width) {
             moveX = width - currentCenterPoint.x;
         }
-
         if (currentCenterPoint.y < 0) {
             moveY = -currentCenterPoint.y;
         }
-
         if (currentCenterPoint.y > height) {
             moveY = height - currentCenterPoint.y;
         }
-
         sticker.getMatrix().postTranslate(moveX, moveY);
     }
-
-
     protected synchronized void handleCurrentMode(float x, float y, MotionEvent event) {
         if (currentSplashMode == SHAPE) {
             switch (currentMode) {
@@ -367,12 +299,10 @@ public class SplashView extends AppCompatImageView {
                     if (sticker != null) {
                         float newDistance = calculateDistance(event);
                         float newRotation = calculateRotation(event);
-
                         moveMatrix.set(downMatrix);
                         moveMatrix.postScale(newDistance / oldDistance, newDistance / oldDistance, midPoint.x,
                                 midPoint.y);
                         moveMatrix.postRotate(newRotation - oldRotation, midPoint.x, midPoint.y);
-
                         sticker.setMatrix(moveMatrix);
                     }
                     break;
@@ -383,11 +313,9 @@ public class SplashView extends AppCompatImageView {
             mTouchY = y;
         }
     }
-
     public void setBrushBitmapSize(int brushBitmapSize) {
         this.brushBitmapSize = brushBitmapSize;
         mDrawPaint.setStrokeWidth(brushBitmapSize);
-
         showTouchIcon = true;
         currentX = getWidth() / 2;
         currentY = getHeight() / 2;
@@ -404,14 +332,12 @@ public class SplashView extends AppCompatImageView {
         }
         return null;
     }
-
     protected boolean onTouchDown(float x, float y) {
         currentMode = StickerView.ActionMode.DRAG;
         mTouchX = x;
         mTouchY = y;
         currentX = x;
         currentY = y;
-
         if (currentSplashMode == SHAPE) {
             midPoint = calculateMidPoint();
             oldDistance = calculateDistance(midPoint.x, midPoint.y, mTouchX, mTouchY);
@@ -420,7 +346,6 @@ public class SplashView extends AppCompatImageView {
             if (handlingSticker != null) {
                 downMatrix.set(sticker.getMatrix());
             }
-
             if (handlingSticker == null) {
                 return false;
             }
@@ -433,7 +358,6 @@ public class SplashView extends AppCompatImageView {
         invalidate();
         return true;
     }
-
     protected void onTouchUp(@NonNull MotionEvent event) {
         showTouchIcon = false;
         if (currentSplashMode == SHAPE) {
@@ -470,11 +394,9 @@ public class SplashView extends AppCompatImageView {
             }
         }
     }
-
     public int getSizeOfPaths() {
         return mPoints.size();
     }
-
     public boolean undo() {
         if (!lstPoints.empty()) {
             LinePath pop = lstPoints.pop();
@@ -484,7 +406,6 @@ public class SplashView extends AppCompatImageView {
         }
         return !lstPoints.empty();
     }
-
     public boolean redo() {
         if (!mRedoPaths.empty()) {
             LinePath pop = mRedoPaths.pop();
@@ -492,18 +413,12 @@ public class SplashView extends AppCompatImageView {
             lstPoints.push(pop);
             invalidate();
         }
-
         return !mRedoPaths.empty();
     }
-
     public Sticker getSticker() {
         return sticker;
     }
-
     public Bitmap getBitmap(Bitmap originalBitmap) {
-
-        //Bitmap myCanvasBitmap = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
-        //Canvas canvas = new Canvas(bitmap);
         int width = getWidth();
         int height = getHeight();
         Bitmap bmpMonochrome = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
@@ -515,19 +430,14 @@ public class SplashView extends AppCompatImageView {
             for (LinePath path : mPoints)
                 canvas.drawPath(path.getDrawPath(), path.getDrawPaint());
         }
-
         Bitmap bmpMonochrome1 = Bitmap.createBitmap(originalBitmap.getWidth(), originalBitmap.getHeight(), Bitmap.Config.ARGB_8888);
         Canvas canvas1 = new Canvas(bmpMonochrome1);
         canvas1.drawBitmap(originalBitmap, null, new RectF(0, 0, originalBitmap.getWidth(), originalBitmap.getHeight()), null);
         canvas1.drawBitmap(bmpMonochrome, null, new RectF(0, 0, originalBitmap.getWidth(), originalBitmap.getHeight()), null);
-
         return bmpMonochrome1;
-
     }
-
     public static int dpToPx(Context context, int dp) {
         DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
         return (int) (dp * displayMetrics.density);
     }
-
 }

@@ -2,6 +2,7 @@ package com.example.cropimageview.Activity;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -19,12 +20,17 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.text.Layout;
+import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
@@ -32,7 +38,9 @@ import androidx.viewpager.widget.ViewPager;
 
 import com.commit451.nativestackblur.NativeStackBlur;
 import com.example.cropimageview.Adapter.AdjustAdapter;
+import com.example.cropimageview.Adapter.ColorAdapter;
 import com.example.cropimageview.Adapter.FilterAdapter;
+import com.example.cropimageview.Adapter.TextAdapter;
 import com.example.cropimageview.Adapter.ToolsAdapter;
 import com.example.cropimageview.Adapter.pagerAdapter;
 import com.example.cropimageview.Fragment.StickerFragment;
@@ -44,10 +52,13 @@ import com.example.cropimageview.Helper.FlipHorizontallyEvent;
 import com.example.cropimageview.Helper.SplashSticker;
 import com.example.cropimageview.Helper.SplashView;
 import com.example.cropimageview.Helper.StickerView;
+import com.example.cropimageview.Helper.TextSticker;
 import com.example.cropimageview.Helper.ZoomIconEvent;
 import com.example.cropimageview.Interface.Adjust;
 import com.example.cropimageview.Interface.ClickSticker;
+import com.example.cropimageview.Interface.ColorInter;
 import com.example.cropimageview.Interface.Filter;
+import com.example.cropimageview.Interface.TextInter;
 import com.example.cropimageview.Interface.Tools;
 import com.example.cropimageview.R;
 import com.google.android.material.tabs.TabLayout;
@@ -61,21 +72,24 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener, ClickSticker {
-    private ImageView resultIv, close, reset, done;
-    RecyclerView subRecyclerView, mainRecyclerView, adjustmentRcv;
+    private ImageView resultIv, close, reset, done,closetxt,donetxt;
+    RecyclerView subRecyclerView, mainRecyclerView, adjustmentRcv,textRecyclerView,colorRecyclerView;
     Bitmap mOriginalBitmap;
+    LinearLayout mainBottom,txtBottom;
     SeekBar sbBrightness, sbContrast, sbSaturation, sbSharp, sbTemp;
-    FilterAdapter filterAdapter;
     ToolsAdapter toolsAdapter;
+    TextView txtView;
+    FilterAdapter filterAdapter;
     AdjustAdapter adjustAdapter;
-    TextView progresses;
+    EditText editText;
+    TextSticker textSticker;
     SplashView splashView;
     StickerView stickerView;
     ViewPager viewPager;
+    int click = -1;
     TabLayout tabLayout;
     Bitmap mOperationalBitmap = null;
-
-    @SuppressLint("MissingInflatedId")
+    @SuppressLint({"MissingInflatedId", "WrongViewCast"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -88,16 +102,23 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         }
         DataBinder.listAssetFiles(this, "Sticker");
 
+        txtBottom = findViewById(R.id.txtBottom);
+        mainBottom = findViewById(R.id.mainBottom);
         tabLayout = findViewById(R.id.tabLayout);
+        closetxt = findViewById(R.id.closetxt);
+        txtView = findViewById(R.id.txtView);
+        donetxt = findViewById(R.id.Donetxt);
         resultIv = findViewById(R.id.resultIv);
         viewPager = findViewById(R.id.viewPager);
         done = (ImageView) findViewById(R.id.Done);
         stickerView = findViewById(R.id.stickerView);
         splashView = findViewById(R.id.splashView);
+        editText = findViewById(R.id.edtText);
         reset = (ImageView) findViewById(R.id.reset);
-        progresses = findViewById(R.id.txtSeekbar);
         close = (ImageView) findViewById(R.id.close);
         subRecyclerView = (RecyclerView) findViewById(R.id.subRecyclerView);
+        textRecyclerView = (RecyclerView) findViewById(R.id.textRecyclerView);
+        colorRecyclerView = (RecyclerView) findViewById(R.id.colorRecyclerView);
         mainRecyclerView = (RecyclerView) findViewById(R.id.mainRecyclerView);
         adjustmentRcv = (RecyclerView) findViewById(R.id.adjustmentRcv);
         sbBrightness = findViewById(R.id.sbBrightness);
@@ -106,7 +127,6 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         sbTemp = findViewById(R.id.sbTemp);
         sbSaturation = findViewById(R.id.sbSaturation);
 
-        progresses.setVisibility(View.GONE);
         resultIv.setImageBitmap(mOriginalBitmap);
 
         ArrayList<ColorFilter> data = new ArrayList<>();
@@ -165,7 +185,6 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
             }
         });
         filterAdapter.setBitmap(mOriginalBitmap);
-
         ArrayList<Integer> toolsList = new ArrayList<>();
         toolsList.add(R.drawable.filter);
         toolsList.add(R.drawable.adjust);
@@ -182,16 +201,16 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                 }
             }
         }));
-
         ArrayList<Integer> adjustList = new ArrayList<>();
         adjustList.add(R.drawable.brightness);
         adjustList.add(R.drawable.contrast);
         adjustList.add(R.drawable.saturation);
+
         adjustList.add(R.drawable.temp);
         adjustList.add(R.drawable.sharp);
         adjustList.add(R.drawable.focus);
         adjustList.add(R.drawable.sticker);
-
+        adjustList.add(R.drawable.text);
         adjustmentRcv.setAdapter(adjustAdapter = new AdjustAdapter(this, adjustList, new Adjust() {
             @Override
             public void onClickAdjust(int position) {
@@ -239,10 +258,9 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                     splashView.setVisibility(View.VISIBLE);
                     splashView.setCurrentSplashMode(SplashView.SHAPE);
                     splashView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
-                    splashView.setImageBitmap(NativeStackBlur.process(mOperationalBitmap, 100));
+                    splashView.setImageBitmap(NativeStackBlur.process(mOperationalBitmap, 150));
                     SplashSticker splashSticker = new SplashSticker(((BitmapDrawable) getDrawable(R.drawable.blur_1_mask)).getBitmap(), ((BitmapDrawable) getDrawable(R.drawable.blur_1_shadow)).getBitmap());
                     splashView.addSticker(splashSticker);
-
                     stickerView.setLocked(true);
                     sbSharp.setVisibility(View.GONE);
                     sbTemp.setVisibility(View.GONE);
@@ -251,6 +269,13 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                     sbBrightness.setVisibility(View.GONE);
                 } else if (position == 6) {
                     stickerView.setVisibility(View.VISIBLE);
+
+                    float oldX = stickerView.getX();
+                    float oldY = stickerView.getY();
+
+                    Log.d("POINT X : ", "X : " + oldX);
+                    Log.d("POINT Y : ", "Y : " + oldY);
+
                     viewPager.setVisibility(View.VISIBLE);
                     tabLayout.setVisibility(View.VISIBLE);
                     viewPager.setAdapter(new pagerAdapter(getSupportFragmentManager(), MainActivity.this));
@@ -262,6 +287,97 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                     sbContrast.setVisibility(View.GONE);
                     sbSaturation.setVisibility(View.GONE);
                     sbBrightness.setVisibility(View.GONE);
+                } else if (position == 7) {
+                    editText.setVisibility(View.VISIBLE);
+                    mainBottom.setVisibility(View.GONE);
+                    txtBottom.setVisibility(View.VISIBLE);
+                    viewPager.setVisibility(View.GONE);
+                    mainRecyclerView.setVisibility(View.GONE);
+                    textRecyclerView.setVisibility(View.VISIBLE);
+                    adjustmentRcv.setVisibility(View.GONE);
+                    closetxt.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            mainBottom.setVisibility(View.VISIBLE);
+                            adjustmentRcv.setVisibility(View.VISIBLE);
+                            txtBottom.setVisibility(View.GONE);
+                            editText.setVisibility(View.GONE);
+                            textRecyclerView.setVisibility(View.GONE);
+                            colorRecyclerView.setVisibility(View.GONE);
+                        }
+                    });
+                    donetxt.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            textSticker = new TextSticker(MainActivity.this);
+                            String text = editText.getText().toString();
+                            txtView.setText(text);
+                            textSticker.setText(txtView.getText().toString());
+                            textSticker.resizeText();
+                            stickerView.addSticker(textSticker);
+                            editText.setVisibility(View.GONE);
+                            editText.setText("");
+                        }
+                    });
+                }
+            }
+        }));
+        ArrayList<Integer> textTool = new ArrayList<>();
+        textTool.add(R.drawable.color);
+        textTool.add(R.drawable.bgcolor);
+        textTool.add(R.drawable.font);
+        textTool.add(R.drawable.center);
+        textRecyclerView.setAdapter(new TextAdapter(textTool, this, new TextInter() {
+            @Override
+            public void onClickText(int position) {
+                if (position == 0){
+                    textRecyclerView.setVisibility(View.GONE);
+                    editText.setVisibility(View.GONE);
+                    colorRecyclerView.setVisibility(View.VISIBLE);
+                    stickerView.setVisibility(View.VISIBLE);
+                    colorRecyclerView.setAdapter(new ColorAdapter(MainActivity.this, fetchTextStickerColor(), new ColorInter() {
+                        @Override
+                        public void onclickColor(int position) {
+//                            stickerView.remove(textSticker);
+                            ArrayList<Integer> colors  = fetchTextStickerColor();
+                            txtView.setText(editText.getText().toString());
+                            textSticker.setText(txtView.getText().toString());
+                            stickerView.addSticker(textSticker);
+                            stickerView.setVisibility(View.VISIBLE);
+                            textSticker.setTextColor(colors.get(position));
+                        }
+                    }));
+                } else if (position == 1) {
+                    textRecyclerView.setVisibility(View.GONE);
+                    editText.setVisibility(View.GONE);
+                    colorRecyclerView.setVisibility(View.VISIBLE);
+                    colorRecyclerView.setAdapter(new ColorAdapter(MainActivity.this, fetchTextStickerColor(), new ColorInter() {
+
+                        @Override
+                        public void onclickColor(int position) {
+
+                            ArrayList<Integer> bgColors = fetchTextStickerColor();
+                            txtView.setBackgroundColor(bgColors.get(position));
+                            stickerView.addSticker(textSticker);
+                            stickerView.setVisibility(View.VISIBLE);
+
+                        }
+                    }));
+
+                } else if (position == 2) {
+
+                } else if (position == 3) {
+                    click++;
+                    if (click == 0){
+                        textSticker.setTextAlign(Layout.Alignment.ALIGN_NORMAL);
+                        click++;
+                    } else if (click == 1) {
+                        textSticker.setTextAlign(Layout.Alignment.ALIGN_OPPOSITE);
+                        click++;
+                    } else if (click ==2) {
+                        textSticker.setTextAlign(Layout.Alignment.ALIGN_CENTER);
+                        click = 0;
+                    }
                 }
             }
         }));
@@ -277,11 +393,12 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                 mainRecyclerView.setVisibility(View.VISIBLE);
                 adjustmentRcv.setVisibility(View.GONE);
                 sbContrast.setVisibility(View.GONE);
+                viewPager.setVisibility(View.GONE);
                 sbSaturation.setVisibility(View.GONE);
+                tabLayout.setVisibility(View.GONE);
                 sbBrightness.setVisibility(View.GONE);
                 sbSharp.setVisibility(View.GONE);
                 sbTemp.setVisibility(View.GONE);
-                progresses.setVisibility(View.GONE);
             }
         });
     }
@@ -310,7 +427,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         ColorMatrix colorMatrix = new ColorMatrix();
         colorMatrix.set(new float[]{1, 0, 0, 0, brightness * 255, 0, 1, 0, 0, brightness * 255, 0, 0, 1, 0, brightness * 255, 0, 0, 0, 1, 0});
         return applyColorMatrix(source, colorMatrix);
-    }
+     }
     private Bitmap applyContrast(Bitmap source, float contrast) {
         ColorMatrix colorMatrix = new ColorMatrix();
         float scale = contrast + 1f;
@@ -377,6 +494,29 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     public void onStopTrackingTouch(SeekBar seekBar) {
         mOperationalBitmap = ((BitmapDrawable) resultIv.getDrawable()).getBitmap();
     }
+    public void openChangeTextDialog(TextSticker textSticker) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setTitle("Change Text");
+
+        final EditText input = new EditText(MainActivity.this);
+        builder.setView(input);
+
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String newText = input.getText().toString();
+                textSticker.setText(newText);
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
+    }
     @Override
     public void onClickSticker(String path) {
         AssetManager assetManager = getAssets();
@@ -391,5 +531,124 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         stickerView.addSticker(new DrawableSticker(new BitmapDrawable(getResources(), bitmap)));
         tabLayout.setVisibility(View.GONE);
         viewPager.setVisibility(View.GONE);
+    }
+    public static ArrayList<Integer> fetchTextStickerColor(){
+        ArrayList<Integer> list = new ArrayList<>();
+
+        list.add(Color.parseColor("#b71c1c"));
+        list.add(Color.parseColor("#ff8a80"));
+        list.add(Color.parseColor("#ff5252"));
+        list.add(Color.parseColor("#ff1744"));
+        list.add(Color.parseColor("#d50000"));
+
+        list.add(Color.parseColor("#880e4f"));
+        list.add(Color.parseColor("#ff80ab"));
+        list.add(Color.parseColor("#ff4081"));
+        list.add(Color.parseColor("#f50057"));
+        list.add(Color.parseColor("#c51162"));
+
+        list.add(Color.parseColor("#4a148c"));
+        list.add(Color.parseColor("#ea80fc"));
+        list.add(Color.parseColor("#e040fb"));
+        list.add(Color.parseColor("#d500f9"));
+        list.add(Color.parseColor("#aa00ff"));
+
+        list.add(Color.parseColor("#311b92"));
+        list.add(Color.parseColor("#b388ff"));
+        list.add(Color.parseColor("#7c4dff"));
+        list.add(Color.parseColor("#651fff"));
+        list.add(Color.parseColor("#6200ea"));
+
+        list.add(Color.parseColor("#1a237e"));
+        list.add(Color.parseColor("#8c9eff"));
+        list.add(Color.parseColor("#536dfe"));
+        list.add(Color.parseColor("#3d5afe"));
+        list.add(Color.parseColor("#304ffe"));
+
+        list.add(Color.parseColor("#0d47a1"));
+        list.add(Color.parseColor("#82b1ff"));
+        list.add(Color.parseColor("#448aff"));
+        list.add(Color.parseColor("#2979ff"));
+        list.add(Color.parseColor("#2962ff"));
+
+        list.add(Color.parseColor("#01579b"));
+        list.add(Color.parseColor("#80d8ff"));
+        list.add(Color.parseColor("#40c4ff"));
+        list.add(Color.parseColor("#00b0ff"));
+        list.add(Color.parseColor("#0091ea"));
+
+        list.add(Color.parseColor("#006064"));
+        list.add(Color.parseColor("#84ffff"));
+        list.add(Color.parseColor("#18ffff"));
+        list.add(Color.parseColor("#00e5ff"));
+        list.add(Color.parseColor("#00b8d4"));
+
+        list.add(Color.parseColor("#004d40"));
+        list.add(Color.parseColor("#a7ffeb"));
+        list.add(Color.parseColor("#64ffda"));
+        list.add(Color.parseColor("#1de9b6"));
+        list.add(Color.parseColor("#00bfa5"));
+
+        list.add(Color.parseColor("#1b5e20"));
+        list.add(Color.parseColor("#b9f6ca"));
+        list.add(Color.parseColor("#69f0ae"));
+        list.add(Color.parseColor("#00e676"));
+        list.add(Color.parseColor("#00c853"));
+
+        list.add(Color.parseColor("#33691e"));
+        list.add(Color.parseColor("#ccff90"));
+        list.add(Color.parseColor("#b2ff59"));
+        list.add(Color.parseColor("#76ff03"));
+        list.add(Color.parseColor("#64dd17"));
+
+        list.add(Color.parseColor("#827717"));
+        list.add(Color.parseColor("#f4ff81"));
+        list.add(Color.parseColor("#eeff41"));
+        list.add(Color.parseColor("#c6ff00"));
+        list.add(Color.parseColor("#aeea00"));
+
+        list.add(Color.parseColor("#f57f17"));
+        list.add(Color.parseColor("#ffff8d"));
+        list.add(Color.parseColor("#ffff00"));
+        list.add(Color.parseColor("#ffea00"));
+        list.add(Color.parseColor("#ffd600"));
+
+        list.add(Color.parseColor("#ff6f00"));
+        list.add(Color.parseColor("#ffe57f"));
+        list.add(Color.parseColor("#ffd740"));
+        list.add(Color.parseColor("#ffc400"));
+        list.add(Color.parseColor("#ffab00"));
+
+        list.add(Color.parseColor("#e65100"));
+        list.add(Color.parseColor("#ffd180"));
+        list.add(Color.parseColor("#ffab40"));
+        list.add(Color.parseColor("#ff9100"));
+        list.add(Color.parseColor("#ff6d00"));
+
+        list.add(Color.parseColor("#bf360c"));
+        list.add(Color.parseColor("#ff9e80"));
+        list.add(Color.parseColor("#ff6e40"));
+        list.add(Color.parseColor("#ff3d00"));
+        list.add(Color.parseColor("#dd2c00"));
+
+        list.add(Color.parseColor("#795548"));
+        list.add(Color.parseColor("#6d4c41"));
+        list.add(Color.parseColor("#5d4037"));
+        list.add(Color.parseColor("#4e342e"));
+        list.add(Color.parseColor("#3e2723"));
+
+        list.add(Color.parseColor("#9e9e9e"));
+        list.add(Color.parseColor("#757575"));
+        list.add(Color.parseColor("#616161"));
+        list.add(Color.parseColor("#424242"));
+        list.add(Color.parseColor("#212121"));
+
+        list.add(Color.parseColor("#607d8b"));
+        list.add(Color.parseColor("#546e7a"));
+        list.add(Color.parseColor("#455a64"));
+        list.add(Color.parseColor("#37474f"));
+        list.add(Color.parseColor("#263238"));
+
+        return list;
     }
 }
