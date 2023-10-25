@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:layout_gravity="center"
     android:gravity="center"
-    tools:context=".Activity.ImageSelectionActivity">
+    tools:context="com.example.CropImageView.Activity.ImageSelectionActivity">
 
     <Button
         android:id="@+id/btnChooseImage"

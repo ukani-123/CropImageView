@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
@@ -16,7 +17,7 @@
         android:theme="@style/Theme.CropImageView"
         tools:targetApi="31">
         <activity
-            android:name=".Activity.ImageSelectionActivity"
+            android:name="com.example.CropImageView.Activity.ImageSelectionActivity"
             android:exported="true">
 
             <intent-filter>
@@ -27,11 +28,11 @@
 
         </activity>
         <activity
-            android:name=".Activity.CropImageActivity"
+            android:name="com.example.CropImageView.Activity.CropImageActivity"
             android:exported="false" />
         <activity
-            android:name=".Activity.MainActivity"
-            android:exported="false">
+            android:name="com.example.CropImageView.Activity.MainActivity"
+            android:exported="false"  android:windowSoftInputMode="adjustPan">
 
         </activity>
         <activity
