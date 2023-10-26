@@ -17,7 +17,7 @@ import java.lang.annotation.RetentionPolicy;
 public abstract class Sticker {
 
 
-    @IntDef(flag = true, value = {
+    @IntDef(flag = false, value = {
       Position.CENTER}) @Retention(RetentionPolicy.SOURCE) public @interface Position {
     int CENTER = 1;
 

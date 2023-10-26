@@ -1,0 +1,36 @@
+<!-- fragment_layout.xml -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#80000000">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <EditText
+            android:layout_centerInParent="true"
+            android:id="@+id/editText"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="@drawable/shape"
+            android:gravity="center"
+            android:textColor="@color/white"
+            android:textColorHint="@color/white"
+            android:hint="Enter text"
+            android:inputType="text"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
+            android:textSize="18sp" />
+
+        <Button
+            android:layout_alignParentRight="true"
+            android:id="@+id/closeButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:text="Close Fragment" />
+
+    </RelativeLayout>
+
+</FrameLayout>

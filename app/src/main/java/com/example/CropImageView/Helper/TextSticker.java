@@ -161,13 +161,13 @@ public class TextSticker extends Sticker {
     public TextSticker setTextAlign(@NonNull Layout.Alignment alignment) {
         switch (alignment) {
             case ALIGN_NORMAL:
-                textPaint.setTextAlign(Paint.Align.LEFT);
-                break;
-            case ALIGN_OPPOSITE:
                 textPaint.setTextAlign(Paint.Align.RIGHT);
                 break;
-            case ALIGN_CENTER:
+            case ALIGN_OPPOSITE:
                 textPaint.setTextAlign(Paint.Align.CENTER);
+                break;
+            case ALIGN_CENTER:
+                textPaint.setTextAlign(Paint.Align.LEFT);
                 break;
         }
         this.alignment = alignment;

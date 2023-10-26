@@ -15,12 +15,12 @@ public class SplashSticker extends Sticker {
     private Paint over;
     public SplashSticker(Bitmap drawableXor, Bitmap drawableOver) {
         xor = new Paint();
-        xor.setDither(true);
-        xor.setAntiAlias(true);
+        xor.setDither(false);
+        xor.setAntiAlias(false);
         xor.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.XOR));
         over = new Paint();
-        over.setDither(true);
-        over.setAntiAlias(true);
+        over.setDither(false);
+        over.setAntiAlias(false);
         over.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_OVER));
         this.bitmapXor = drawableXor;
         this.bitmapOver = drawableOver;

@@ -6,20 +6,22 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.CropImageView.Interface.TextInter;
+import com.example.CropImageView.model.TextTool;
 import com.example.cropimageview.R;
 
 import java.util.ArrayList;
 public class TextAdapter extends RecyclerView.Adapter<TextAdapter.ViewHolder> {
-    ArrayList<Integer> textList;
+    ArrayList<TextTool> textList;
     Context context;
     int selectedItem = -1;
     TextInter text;
-    public TextAdapter(ArrayList<Integer> textList, Context context, TextInter text) {
+    public TextAdapter(ArrayList<TextTool> textList, Context context, TextInter text) {
         this.textList = textList;
         this.context = context;
         this.text = text;
@@ -31,16 +33,22 @@ public class TextAdapter extends RecyclerView.Adapter<TextAdapter.ViewHolder> {
     }
     @Override
     public void onBindViewHolder(@NonNull TextAdapter.ViewHolder holder, @SuppressLint("RecyclerView") int position) {
-        holder.imageView.setImageResource(textList.get(position));
+        holder.imageView.setImageResource(textList.get(position).getIcon());
+        holder.txtTool.setText(textList.get(position).getName());
         if (position == selectedItem) {
-            holder.imageView.setBackgroundResource(R.drawable.shape);
+            holder.itemView.setBackgroundResource(R.drawable.shape);
         } else {
-            holder.imageView.setBackgroundResource(0);
+            holder.itemView.setBackgroundResource(0);
         }
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 text.onClickText(position);
+
+                int previousSelectedItem = selectedItem;
+                selectedItem = position;
+                notifyItemChanged(previousSelectedItem);
+                notifyItemChanged(selectedItem);
             }
         });
 
@@ -51,9 +59,11 @@ public class TextAdapter extends RecyclerView.Adapter<TextAdapter.ViewHolder> {
     }
     public class ViewHolder extends RecyclerView.ViewHolder {
         ImageView imageView;
+        TextView txtTool;
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            imageView = itemView.findViewById(R.id.txtImage);
+            imageView = itemView.findViewById(R.id.imageToolsView);
+            txtTool = itemView.findViewById(R.id.txtTool);
         }
     }
 }

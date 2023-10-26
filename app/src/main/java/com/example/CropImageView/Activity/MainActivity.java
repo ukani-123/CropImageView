@@ -1,9 +1,6 @@
 package com.example.CropImageView.Activity;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
-import android.content.Context;
-import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -17,23 +14,19 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
-import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.text.Layout;
 import android.view.View;
-import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.ViewPager;
 
@@ -45,6 +38,7 @@ import com.example.CropImageView.Adapter.FontAdapter;
 import com.example.CropImageView.Adapter.TextAdapter;
 import com.example.CropImageView.Adapter.ToolsAdapter;
 import com.example.CropImageView.Adapter.pagerAdapter;
+import com.example.CropImageView.Fragment.FullScreenEditTextFragment;
 import com.example.CropImageView.Fragment.StickerFragment;
 import com.example.CropImageView.Helper.BitmapStickerIcon;
 import com.example.CropImageView.Helper.DataBinder;
@@ -64,28 +58,27 @@ import com.example.CropImageView.Interface.FontClick;
 import com.example.CropImageView.Interface.TextInter;
 import com.example.CropImageView.Interface.TextStickerListener;
 import com.example.CropImageView.Interface.Tools;
+import com.example.CropImageView.model.AdjustModel;
+import com.example.CropImageView.model.TextTool;
+import com.example.CropImageView.model.Tool;
 import com.example.cropimageview.R;
 import com.google.android.material.tabs.TabLayout;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener, ClickSticker, TextStickerListener {
-    RecyclerView subRecyclerView, mainRecyclerView, adjustmentRcv, textRecyclerView, colorRecyclerView, fontRecyclerView;
+    RecyclerView subRecyclerView, mainRecyclerView, colorRecyclerView, fontRecyclerView;
     Bitmap mOriginalBitmap;
     LinearLayout mainBottom, txtBottom;
     SeekBar sbBrightness, sbContrast, sbSaturation, sbSharp, sbTemp;
     ToolsAdapter toolsAdapter;
-    TextView btnText;
     FilterAdapter filterAdapter;
     AdjustAdapter adjustAdapter;
-    EditText editText;
     TextSticker textSticker;
+    FrameLayout frameLayout;
     SplashView splashView;
     StickerView stickerView;
     TextAdapter textAdapter;
@@ -227,9 +220,6 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
             throw new RuntimeException(e);
         }
         DataBinder.listAssetFiles(this, "Sticker");
-        /*FontBinder.listAssetFiles(this,"Fonts");
-        Log.d("list", "onCreate: "+FontBinder.getFontPathList());*/
-
         textSticker = new TextSticker(MainActivity.this);
 
         txtBottom = findViewById(R.id.txtBottom);
@@ -237,21 +227,18 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         tabLayout = findViewById(R.id.tabLayout);
         txtClose = findViewById(R.id.closetxt);
         txtDone = findViewById(R.id.Donetxt);
-        btnText = findViewById(R.id.btnDone);
         resultIv = findViewById(R.id.resultIv);
         viewPager = findViewById(R.id.viewPager);
         done = findViewById(R.id.Done);
         stickerView = findViewById(R.id.stickerView);
         splashView = findViewById(R.id.splashView);
-        editText = findViewById(R.id.edtText);
         reset = findViewById(R.id.reset);
         close = findViewById(R.id.close);
         subRecyclerView = findViewById(R.id.subRecyclerView);
-        textRecyclerView = findViewById(R.id.textRecyclerView);
         colorRecyclerView = findViewById(R.id.colorRecyclerView);
         mainRecyclerView = findViewById(R.id.mainRecyclerView);
-        adjustmentRcv = findViewById(R.id.adjustmentRcv);
         fontRecyclerView = findViewById(R.id.fontRecyclerView);
+        frameLayout = (FrameLayout) findViewById(R.id.changefragment);
         sbBrightness = findViewById(R.id.sbBrightness);
         sbContrast = findViewById(R.id.sbContrast);
         sbSharp = findViewById(R.id.sbSharp);
@@ -261,7 +248,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         resultIv.setImageBitmap(mOriginalBitmap);
 
         ArrayList<ColorFilter> data = new ArrayList<>();
-        data.add(new PorterDuffColorFilter(Color.GRAY, PorterDuff.Mode.MULTIPLY));
+        data.add(null);
         data.add(new PorterDuffColorFilter(Color.RED, PorterDuff.Mode.MULTIPLY));
         data.add(new PorterDuffColorFilter(Color.GREEN, PorterDuff.Mode.MULTIPLY));
         data.add(new PorterDuffColorFilter(Color.DKGRAY, PorterDuff.Mode.MULTIPLY));
@@ -273,34 +260,23 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         data.add(new PorterDuffColorFilter(Color.CYAN, PorterDuff.Mode.MULTIPLY));
         StickerFragment.setClickSticker(this);
 
-        ArrayList<String> fontList = new ArrayList<>();
-        fontList.add("");
-
-        BitmapStickerIcon deleteIcon = new BitmapStickerIcon(ContextCompat.getDrawable(this,
-                R.drawable.sticker_ic_close_white_18dp),
-                BitmapStickerIcon.LEFT_TOP);
+        BitmapStickerIcon deleteIcon = new BitmapStickerIcon(ContextCompat.getDrawable(this, R.drawable.sticker_ic_close_white_18dp), BitmapStickerIcon.LEFT_TOP);
         deleteIcon.setIconEvent(new DeleteIconEvent());
-        BitmapStickerIcon zoomIcon = new BitmapStickerIcon(ContextCompat.getDrawable(this,
-                R.drawable.sticker_ic_scale_white_18dp),
-                BitmapStickerIcon.RIGHT_BOTOM);
+        BitmapStickerIcon zoomIcon = new BitmapStickerIcon(ContextCompat.getDrawable(this, R.drawable.sticker_ic_scale_white_18dp), BitmapStickerIcon.RIGHT_BOTOM);
         zoomIcon.setIconEvent(new ZoomIconEvent());
-        BitmapStickerIcon flipIcon = new BitmapStickerIcon(ContextCompat.getDrawable(this,
-                R.drawable.sticker_ic_flip_white_18dp),
-                BitmapStickerIcon.RIGHT_TOP);
+        BitmapStickerIcon flipIcon = new BitmapStickerIcon(ContextCompat.getDrawable(this, R.drawable.sticker_ic_flip_white_18dp), BitmapStickerIcon.RIGHT_TOP);
         flipIcon.setIconEvent(new FlipHorizontallyEvent());
         stickerView.setIcons(Arrays.asList(deleteIcon, zoomIcon, flipIcon));
-        stickerView.setConstrained(true);
+        stickerView.setConstrained(false);
 
         done.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 101);
-                } else {
-                    saveImageToGallery(MainActivity.this, splashView.getBitmap(mOperationalBitmap));
-                    resultIv.setDrawingCacheEnabled(false);
-                    Toast.makeText(MainActivity.this, "Image Save Successfully", Toast.LENGTH_SHORT).show();
-                }
+                subRecyclerView.setVisibility(View.VISIBLE);
+                colorRecyclerView.setVisibility(View.GONE);
+                fontRecyclerView.setVisibility(View.GONE);
+                viewPager.setVisibility(View.GONE);
+                tabLayout.setVisibility(View.GONE);
             }
         });
         reset.setOnClickListener(new View.OnClickListener() {
@@ -322,33 +298,38 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                 mOperationalBitmap = mOriginalBitmap;
             }
         });
-        ArrayList<Integer> toolsList = new ArrayList<>();
-        toolsList.add(R.drawable.filter);
-        toolsList.add(R.drawable.adjust);
-        toolsList.add(R.drawable.sticker);
-        toolsList.add(R.drawable.text);
+        ArrayList<Tool> toolsList = new ArrayList<>();
+        toolsList.add(new Tool("Filter", R.drawable.filter));
+        toolsList.add(new Tool("adjust", R.drawable.adjust));
+        toolsList.add(new Tool("Sticker", R.drawable.sticker));
+        toolsList.add(new Tool("Text", R.drawable.text));
 
-        ArrayList<Integer> adjustList = new ArrayList<>();
-        adjustList.add(R.drawable.brightness);
-        adjustList.add(R.drawable.contrast);
-        adjustList.add(R.drawable.saturation);
-        adjustList.add(R.drawable.temp);
-        adjustList.add(R.drawable.sharp);
-        adjustList.add(R.drawable.focus);
 
-        ArrayList<Integer> textTool = new ArrayList<>();
-        textTool.add(R.drawable.color);
-        textTool.add(R.drawable.bgcolor);
-        textTool.add(R.drawable.font);
-        textTool.add(R.drawable.center);
+        ArrayList<AdjustModel> adjustList = new ArrayList<>();
+        adjustList.add(new AdjustModel("Brightness", R.drawable.brightness));
+        adjustList.add(new AdjustModel("Contrast", R.drawable.contrast));
+        adjustList.add(new AdjustModel("Saturation", R.drawable.saturation));
+        adjustList.add(new AdjustModel("Temp", R.drawable.temp));
+        adjustList.add(new AdjustModel("Sharp", R.drawable.sharp));
+        adjustList.add(new AdjustModel("Focus", R.drawable.focus));
+
+        ArrayList<TextTool> textTool = new ArrayList<>();
+        textTool.add(new TextTool("color", R.drawable.fontcolor));
+        textTool.add(new TextTool("Bg Color", R.drawable.bgcolor));
+        textTool.add(new TextTool("Font", R.drawable.font));
+        textTool.add(new TextTool("Alignment", R.drawable.center));
+
         mainRecyclerView.setAdapter(toolsAdapter = new ToolsAdapter(this, toolsList, new Tools() {
             @Override
             public void onClickTool(int tool) {
+                mainRecyclerView.setVisibility(View.VISIBLE);
                 if (tool == 0) {
+                    mainBottom.setVisibility(View.VISIBLE);
+                    txtBottom.setVisibility(View.GONE);
                     tabLayout.setVisibility(View.GONE);
-                    editText.setVisibility(View.GONE);
+                    colorRecyclerView.setVisibility(View.GONE);
+                    fontRecyclerView.setVisibility(View.GONE);
                     subRecyclerView.setVisibility(View.VISIBLE);
-                    btnText.setVisibility(View.GONE);
                     subRecyclerView.setAdapter(filterAdapter = new FilterAdapter(MainActivity.this, data, new Filter() {
                         @Override
                         public void onClickItem(ColorFilter filter) {
@@ -357,10 +338,11 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                     }));
                     filterAdapter.setBitmap(mOriginalBitmap);
                 } else if (tool == 1) {
-                    tabLayout.setVisibility(View.GONE);
-                    editText.setVisibility(View.GONE);
-                    btnText.setVisibility(View.GONE);
+                    txtBottom.setVisibility(View.GONE);
+                    mainBottom.setVisibility(View.VISIBLE);
+                    colorRecyclerView.setVisibility(View.GONE);
                     viewPager.setVisibility(View.GONE);
+                    fontRecyclerView.setVisibility(View.GONE);
                     tabLayout.setVisibility(View.GONE);
                     subRecyclerView.setVisibility(View.VISIBLE);
                     subRecyclerView.setAdapter(adjustAdapter = new AdjustAdapter(MainActivity.this, adjustList, new Adjust() {
@@ -369,7 +351,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                             if (position == 0) {
                                 sbBrightness.setVisibility(View.VISIBLE);
                                 sbContrast.setVisibility(View.GONE);
-                                stickerView.setLocked(false);
+                                colorRecyclerView.setVisibility(View.GONE);
                                 viewPager.setVisibility(View.GONE);
                                 tabLayout.setVisibility(View.GONE);
                                 sbSaturation.setVisibility(View.GONE);
@@ -383,25 +365,26 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                                 viewPager.setVisibility(View.GONE);
                                 tabLayout.setVisibility(View.GONE);
                                 sbSharp.setVisibility(View.GONE);
-                                stickerView.setLocked(false);
+                                colorRecyclerView.setVisibility(View.GONE);
+
                                 sbSaturation.setVisibility(View.GONE);
                                 splashView.setVisibility(View.GONE);
                             } else if (position == 2) {
                                 sbSaturation.setVisibility(View.VISIBLE);
-                                stickerView.setLocked(false);
                                 sbBrightness.setVisibility(View.GONE);
                                 viewPager.setVisibility(View.GONE);
                                 tabLayout.setVisibility(View.GONE);
                                 sbTemp.setVisibility(View.GONE);
                                 sbSharp.setVisibility(View.GONE);
+                                colorRecyclerView.setVisibility(View.GONE);
                                 sbContrast.setVisibility(View.GONE);
                                 splashView.setVisibility(View.GONE);
                             } else if (position == 3) {
                                 sbTemp.setVisibility(View.VISIBLE);
-                                stickerView.setLocked(false);
                                 sbContrast.setVisibility(View.GONE);
                                 viewPager.setVisibility(View.GONE);
                                 tabLayout.setVisibility(View.GONE);
+                                colorRecyclerView.setVisibility(View.GONE);
                                 sbSharp.setVisibility(View.GONE);
                                 sbSaturation.setVisibility(View.GONE);
                                 sbBrightness.setVisibility(View.GONE);
@@ -409,11 +392,11 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                             } else if (position == 4) {
                                 sbSharp.setVisibility(View.VISIBLE);
                                 sbTemp.setVisibility(View.GONE);
-                                stickerView.setLocked(false);
                                 sbContrast.setVisibility(View.GONE);
                                 sbSaturation.setVisibility(View.GONE);
                                 viewPager.setVisibility(View.GONE);
                                 tabLayout.setVisibility(View.GONE);
+                                colorRecyclerView.setVisibility(View.GONE);
                                 sbBrightness.setVisibility(View.GONE);
                                 splashView.setVisibility(View.GONE);
                             } else if (position == 5) {
@@ -423,84 +406,69 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                                 splashView.setImageBitmap(NativeStackBlur.process(mOperationalBitmap, 150));
                                 SplashSticker splashSticker = new SplashSticker(((BitmapDrawable) getDrawable(R.drawable.blur_1_mask)).getBitmap(), ((BitmapDrawable) getDrawable(R.drawable.blur_1_shadow)).getBitmap());
                                 splashView.addSticker(splashSticker);
+                                splashView.removeTouchIcon();
                                 stickerView.setLocked(true);
+                                splashView.setLock(false);
 
                                 viewPager.setVisibility(View.GONE);
                                 tabLayout.setVisibility(View.GONE);
+                                colorRecyclerView.setVisibility(View.GONE);
                                 sbSharp.setVisibility(View.GONE);
                                 sbTemp.setVisibility(View.GONE);
                                 sbContrast.setVisibility(View.GONE);
                                 sbSaturation.setVisibility(View.GONE);
                                 sbBrightness.setVisibility(View.GONE);
                             }
-                            /*else if (position == 6) {
-                                stickerView.setVisibility(View.VISIBLE);
-                                viewPager.setVisibility(View.VISIBLE);
-                                tabLayout.setVisibility(View.VISIBLE);
-                                viewPager.setAdapter(new pagerAdapter(getSupportFragmentManager(), MainActivity.this));
-                                tabLayout.setupWithViewPager(viewPager);
-                                stickerView.setLocked(false);
-
-                                splashView.setVisibility(View.GONE);
-                                sbSharp.setVisibility(View.GONE);
-                                sbTemp.setVisibility(View.GONE);
-                                sbContrast.setVisibility(View.GONE);
-                                sbSaturation.setVisibility(View.GONE);
-                                sbBrightness.setVisibility(View.GONE);
-                            }*/
-//                    adjustmentRcv.setVisibility(View.GONE);
                             tabLayout.setVisibility(View.GONE);
-
                         }
                     }));
 
                 } else if (tool == 2) {
+                    mainBottom.setVisibility(View.VISIBLE);
                     stickerView.setVisibility(View.VISIBLE);
                     viewPager.setVisibility(View.VISIBLE);
+                    txtBottom.setVisibility(View.GONE);
                     tabLayout.setVisibility(View.VISIBLE);
-                    viewPager.setAdapter(new pagerAdapter(getSupportFragmentManager(), MainActivity.this));
-                    subRecyclerView.setVisibility(View.GONE);
-                    tabLayout.setupWithViewPager(viewPager);
-                    editText.setVisibility(View.GONE);
-                    stickerView.setLocked(false);
-                    btnText.setVisibility(View.GONE);
                     splashView.setVisibility(View.GONE);
                     sbSharp.setVisibility(View.GONE);
+                    fontRecyclerView.setVisibility(View.GONE);
                     sbTemp.setVisibility(View.GONE);
+                    colorRecyclerView.setVisibility(View.GONE);
                     sbContrast.setVisibility(View.GONE);
                     sbSaturation.setVisibility(View.GONE);
                     sbBrightness.setVisibility(View.GONE);
+                    //TODO Sticker
+                    viewPager.setAdapter(new pagerAdapter(getSupportFragmentManager(), MainActivity.this));
+                    subRecyclerView.setVisibility(View.GONE);
+
+                    tabLayout.setupWithViewPager(viewPager);
+
+                    stickerView.setLocked(false);
+
                 } else if (tool == 3) {
                     subRecyclerView.setVisibility(View.VISIBLE);
-                    editText.setVisibility(View.VISIBLE);
                     mainBottom.setVisibility(View.GONE);
                     txtBottom.setVisibility(View.VISIBLE);
                     viewPager.setVisibility(View.GONE);
                     tabLayout.setVisibility(View.GONE);
                     viewPager.setVisibility(View.GONE);
-                    textRecyclerView.setVisibility(View.VISIBLE);
-                    btnText.setVisibility(View.VISIBLE);
+                    splashView.setLock(true);
+                    colorRecyclerView.setVisibility(View.GONE);
+                    showFullScreenEditTextFragment();
                     subRecyclerView.setAdapter(textAdapter = new TextAdapter(textTool, MainActivity.this, new TextInter() {
-
                         @Override
                         public void onClickText(int position) {
                             fontRecyclerView.setVisibility(View.GONE);
-                            textRecyclerView.setVisibility(View.GONE);
-                            mainRecyclerView.setVisibility(View.GONE);
                             subRecyclerView.setVisibility(View.VISIBLE);
                             sbBrightness.setVisibility(View.GONE);
                             sbContrast.setVisibility(View.GONE);
+                            colorRecyclerView.setVisibility(View.GONE);
                             sbSaturation.setVisibility(View.GONE);
                             sbSharp.setVisibility(View.GONE);
                             sbTemp.setVisibility(View.GONE);
-                            adjustmentRcv.setVisibility(View.GONE);
                             if (position == 0) {
                                 tabLayout.setVisibility(View.GONE);
                                 viewPager.setVisibility(View.GONE);
-                                textRecyclerView.setVisibility(View.GONE);
-                                btnText.setVisibility(View.GONE);
-                                mainRecyclerView.setVisibility(View.VISIBLE);
-                                editText.setVisibility(View.GONE);
                                 subRecyclerView.setVisibility(View.GONE);
                                 colorRecyclerView.setVisibility(View.VISIBLE);
                                 stickerView.setVisibility(View.VISIBLE);
@@ -513,17 +481,12 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                                             stickerView.replace(operational);
                                             stickerView.invalidate();
                                         }
-
                                     }
                                 }));
                             } else if (position == 1) {
                                 tabLayout.setVisibility(View.GONE);
                                 viewPager.setVisibility(View.GONE);
-                                textRecyclerView.setVisibility(View.GONE);
                                 subRecyclerView.setVisibility(View.GONE);
-                                mainRecyclerView.setVisibility(View.VISIBLE);
-                                editText.setVisibility(View.GONE);
-                                btnText.setVisibility(View.GONE);
                                 colorRecyclerView.setVisibility(View.VISIBLE);
                                 colorRecyclerView.setAdapter(new ColorAdapter(MainActivity.this, fetchTextStickerColor(), new ColorInter() {
                                     @Override
@@ -537,18 +500,13 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                                     }
                                 }));
                             } else if (position == 2) {
-                                editText.setVisibility(View.GONE);
                                 fontRecyclerView.setVisibility(View.VISIBLE);
-                                textRecyclerView.setVisibility(View.GONE);
                                 subRecyclerView.setVisibility(View.GONE);
                                 sbBrightness.setVisibility(View.GONE);
-                                mainRecyclerView.setVisibility(View.VISIBLE);
-                                btnText.setVisibility(View.GONE);
                                 sbContrast.setVisibility(View.GONE);
                                 sbSaturation.setVisibility(View.GONE);
                                 sbSharp.setVisibility(View.GONE);
                                 sbTemp.setVisibility(View.GONE);
-                                adjustmentRcv.setVisibility(View.GONE);
                                 fontRecyclerView.setAdapter(new FontAdapter(MainActivity.this, new FontClick() {
                                     @Override
                                     public void onFontClick(Typeface typeface) {
@@ -563,26 +521,23 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                             } else if (position == 3) {
                                 tabLayout.setVisibility(View.GONE);
                                 viewPager.setVisibility(View.GONE);
-                                editText.setVisibility(View.GONE);
-                                btnText.setVisibility(View.GONE);
-                                mainRecyclerView.setVisibility(View.VISIBLE);
                                 textTool.clear();
-                                textTool.add(R.drawable.color);
-                                textTool.add(R.drawable.bgcolor);
-                                textTool.add(R.drawable.font);
+                                textTool.add(new TextTool("color", R.drawable.fontcolor));
+                                textTool.add(new TextTool("Bg Color", R.drawable.bgcolor));
+                                textTool.add(new TextTool("Font", R.drawable.font));
                                 if (stickerView.getCurrentSticker() instanceof TextSticker) {
                                     TextSticker operational = (TextSticker) stickerView.getCurrentSticker();
                                     if (click == 0) {
-                                        textTool.add(R.drawable.left);
-                                        operational.setTextAlign(Layout.Alignment.ALIGN_OPPOSITE);
-                                        click++;
-                                    } else if (click == 1) {
-                                        textTool.add(R.drawable.center);
+                                        textTool.add(new TextTool("Left", R.drawable.left));
                                         operational.setTextAlign(Layout.Alignment.ALIGN_NORMAL);
                                         click++;
-                                    } else if (click == 2) {
-                                        textTool.add(R.drawable.right);
+                                    } else if (click == 1) {
+                                        textTool.add(new TextTool("Center", R.drawable.center));
                                         operational.setTextAlign(Layout.Alignment.ALIGN_CENTER);
+                                        click++;
+                                    } else if (click == 2) {
+                                        textTool.add(new TextTool("Right", R.drawable.right));
+                                        operational.setTextAlign(Layout.Alignment.ALIGN_OPPOSITE);
                                         click = 0;
                                     }
                                     stickerView.replace(operational);
@@ -593,37 +548,17 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                         }
                     }));
 
-                    btnText.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-
-                            if (editText.getText().toString().equals("")){
-                                editText.setVisibility(View.GONE);
-                                btnText.setVisibility(View.GONE);
-                            }else {
-                                String text = editText.getText().toString();
-                                textSticker.setText(text);
-                                textSticker.resizeText();
-                                stickerView.addSticker(textSticker);
-                                editText.setText(" ");
-                                editText.setVisibility(View.GONE);
-                                btnText.setVisibility(View.GONE);
-                            }
-                        }
-                    });
                 }
             }
         }));
+        textSticker.setTextStickerListener(this);
         txtClose.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mainBottom.setVisibility(View.VISIBLE);
                 mainRecyclerView.setVisibility(View.VISIBLE);
-                btnText.setVisibility(View.GONE);
                 subRecyclerView.setVisibility(View.GONE);
                 txtBottom.setVisibility(View.GONE);
-                editText.setVisibility(View.GONE);
-                textRecyclerView.setVisibility(View.GONE);
                 colorRecyclerView.setVisibility(View.GONE);
                 fontRecyclerView.setVisibility(View.GONE);
             }
@@ -631,9 +566,9 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         txtDone.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                editText.setVisibility(View.GONE);
-                textRecyclerView.setVisibility(View.GONE);
                 fontRecyclerView.setVisibility(View.GONE);
+                mainBottom.setVisibility(View.VISIBLE);
+                txtBottom.setVisibility(View.GONE);
                 colorRecyclerView.setVisibility(View.GONE);
                 mainRecyclerView.setVisibility(View.VISIBLE);
                 subRecyclerView.setVisibility(View.VISIBLE);
@@ -650,7 +585,6 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
             public void onClick(View v) {
                 subRecyclerView.setVisibility(View.GONE);
                 mainRecyclerView.setVisibility(View.VISIBLE);
-                adjustmentRcv.setVisibility(View.GONE);
                 sbContrast.setVisibility(View.GONE);
                 viewPager.setVisibility(View.GONE);
                 sbSaturation.setVisibility(View.GONE);
@@ -661,8 +595,8 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
             }
         });
     }
-
-    private void saveImageToGallery(Context context, Bitmap bitmap) {
+    // TODO save image
+    /*private void saveImageToGallery(Context context, Bitmap bitmap) {
         String fileName = "Image_" + System.currentTimeMillis() + ".jpg";
         File imageFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), fileName);
         try {
@@ -674,7 +608,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
+    }*/
 
     private Bitmap applyColorMatrix(Bitmap source, ColorMatrix colorMatrix) {
         Bitmap result = Bitmap.createBitmap(source.getWidth(), source.getHeight(), source.getConfig());
@@ -768,6 +702,27 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
         mOperationalBitmap = ((BitmapDrawable) resultIv.getDrawable()).getBitmap();
+    }
+
+    private void showFullScreenEditTextFragment() {
+        FullScreenEditTextFragment fullScreenEditTextFragment = new FullScreenEditTextFragment();
+        fullScreenEditTextFragment.setOnCloseListener(new FullScreenEditTextFragment.OnCloseListener() {
+            @Override
+            public void onClose(String strSticker) {
+                fullScreenEditTextFragment.dismiss();
+                textSticker.setText(strSticker);
+                textSticker.resizeText();
+                stickerView.addSticker(textSticker);
+                stickerView.invalidate();
+                frameLayout.setVisibility(View.GONE);
+            }
+
+        });
+        fullScreenEditTextFragment.show(getSupportFragmentManager(), "FullScreenEditTextFragment");
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        frameLayout.setVisibility(View.VISIBLE);
+        transaction.replace(R.id.changefragment,fullScreenEditTextFragment);
+        transaction.commit();
     }
 
     @Override

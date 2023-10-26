@@ -98,21 +98,7 @@ public class SplashView extends AppCompatImageView {
         paintCircle.setStrokeWidth(dpToPx(getContext(), 2));
         paintCircle.setStyle(Paint.Style.STROKE);
         mPath = new Path();
-    }
-    public void updateBrush() {
-        mPath = new Path();
-        mDrawPaint.setAntiAlias(true);
-        mDrawPaint.setDither(true);
-        mDrawPaint.setStyle(Paint.Style.FILL);
-        mDrawPaint.setStrokeJoin(Paint.Join.ROUND);
-        mDrawPaint.setStrokeCap(Paint.Cap.ROUND);
-        mDrawPaint.setStrokeWidth(brushBitmapSize);
-        mDrawPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_OUT));
-        mDrawPaint.setStyle(Paint.Style.STROKE);
-        showTouchIcon = false;
-        invalidate();
-    }
-    @NonNull
+    }@NonNull
     public void addSticker(@NonNull Sticker sticker) {
         addSticker(sticker, Sticker.Position.CENTER);
     }
