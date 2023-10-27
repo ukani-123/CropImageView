@@ -22,14 +22,15 @@ import androidx.core.content.ContextCompat;
 
 import com.example.CropImageView.Interface.TextStickerListener;
 import com.example.cropimageview.R;
+
 public class TextSticker extends Sticker {
     private static final String mEllipsis = "\u2026";
     private final Context context;
     private final Rect realBounds;
     private final Rect textRect;
     private final TextPaint textPaint;
-    private TextStickerListener textStickerListener;
     int backgroundColor;
+    private TextStickerListener textStickerListener;
     private Drawable drawable;
     private StaticLayout staticLayout;
     private Layout.Alignment alignment;
@@ -38,9 +39,11 @@ public class TextSticker extends Sticker {
     private float minTextSizePixels;
     private float lineSpacingMultiplier = 1.0f;
     private float lineSpacingExtra = 0.0f;
+
     public TextSticker(@NonNull Context context) {
         this(context, null);
     }
+
     @SuppressLint("ResourceType")
     public TextSticker(@NonNull Context context, @Nullable Drawable drawable) {
         this.context = context;
@@ -56,9 +59,11 @@ public class TextSticker extends Sticker {
         alignment = Layout.Alignment.ALIGN_CENTER;
         textPaint.setTextSize(maxTextSizePixels);
     }
+
     public void setTextStickerListener(TextStickerListener listener) {
         this.textStickerListener = listener;
     }
+
     @Override
     public void draw(@NonNull Canvas canvas) {
         Matrix matrix = getMatrix();
@@ -88,14 +93,17 @@ public class TextSticker extends Sticker {
         staticLayout.draw(canvas);
         canvas.restore();
     }
+
     @Override
     public int getWidth() {
         return drawable.getIntrinsicWidth();
     }
+
     @Override
     public int getHeight() {
         return drawable.getIntrinsicHeight();
     }
+
     @Override
     public void release() {
         super.release();
@@ -103,21 +111,25 @@ public class TextSticker extends Sticker {
             drawable = null;
         }
     }
+
+    @Override
+    public int getAlpha() {
+        return 0;
+    }
+
     @NonNull
     @Override
     public TextSticker setAlpha(@IntRange(from = 0, to = 255) int alpha) {
         textPaint.setAlpha(alpha);
         return this;
     }
-    @Override
-    public int getAlpha() {
-        return 0;
-    }
+
     @NonNull
     @Override
     public Drawable getDrawable() {
         return drawable;
     }
+
     @Override
     public TextSticker setDrawable(@NonNull Drawable drawable) {
         this.drawable = drawable;
@@ -125,6 +137,7 @@ public class TextSticker extends Sticker {
         textRect.set(0, 0, getWidth(), getHeight());
         return this;
     }
+
     @NonNull
     public TextSticker setDrawable(@NonNull Drawable drawable, @Nullable Rect region) {
         this.drawable = drawable;
@@ -136,27 +149,26 @@ public class TextSticker extends Sticker {
         }
         return this;
     }
+
     @NonNull
     public TextSticker setTypeface(@Nullable Typeface typeface) {
         textPaint.setTypeface(typeface);
         return this;
     }
+
     @NonNull
     public TextSticker setTextColor(@ColorInt int color) {
         textPaint.setColor(color);
         return this;
     }
-    public void notifyDataSetChanged() {
-        if (textStickerListener != null) {
-            textStickerListener.onTextStickerChanged(TextSticker.this);
-        }
-    }
+
     @NonNull
     public TextSticker setTextBackgroundColor(@ColorInt int color) {
 
         this.backgroundColor = color;
         return this;
     }
+
     @NonNull
     public TextSticker setTextAlign(@NonNull Layout.Alignment alignment) {
         switch (alignment) {
@@ -173,32 +185,38 @@ public class TextSticker extends Sticker {
         this.alignment = alignment;
         return this;
     }
+
     @NonNull
     public TextSticker setMaxTextSize(@Dimension(unit = Dimension.SP) float size) {
         textPaint.setTextSize(convertSpToPx(size));
         maxTextSizePixels = textPaint.getTextSize();
         return this;
     }
+
     @NonNull
     public TextSticker setMinTextSize(float minTextSizeScaledPixels) {
         minTextSizePixels = convertSpToPx(minTextSizeScaledPixels);
         return this;
     }
+
     @NonNull
     public TextSticker setLineSpacing(float add, float multiplier) {
         lineSpacingMultiplier = multiplier;
         lineSpacingExtra = add;
         return this;
     }
+
+    @Nullable
+    public String getText() {
+        return text;
+    }
+
     @NonNull
     public TextSticker setText(@Nullable String text) {
         this.text = text;
         return this;
     }
-    @Nullable
-    public String getText() {
-        return text;
-    }
+
     @NonNull
     public TextSticker resizeText() {
         final int availableHeightPixels = textRect.height();
@@ -216,7 +234,7 @@ public class TextSticker extends Sticker {
                 getTextHeightPixels(text, availableWidthPixels, targetTextSizePixels);
         while (targetTextHeightPixels > availableHeightPixels
                 && targetTextSizePixels > minTextSizePixels) {
-            targetTextSizePixels = Math.max(targetTextSizePixels - 2, minTextSizePixels);
+            targetTextSizePixels = Math.max(targetTextSizePixels - 0, minTextSizePixels);
 
             targetTextHeightPixels =
                     getTextHeightPixels(text, availableWidthPixels, targetTextSizePixels);
@@ -249,9 +267,11 @@ public class TextSticker extends Sticker {
                         lineSpacingExtra, true);
         return this;
     }
+
     public float getMinTextSizePixels() {
         return minTextSizePixels;
     }
+
     protected int getTextHeightPixels(@NonNull CharSequence source, int availableWidthPixels,
                                       float textSizePixels) {
         textPaint.setTextSize(textSizePixels);
@@ -260,6 +280,7 @@ public class TextSticker extends Sticker {
                         lineSpacingMultiplier, lineSpacingExtra, true);
         return staticLayout.getHeight();
     }
+
     private float convertSpToPx(float scaledPixels) {
         return scaledPixels * context.getResources().getDisplayMetrics().scaledDensity;
     }

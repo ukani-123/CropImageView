@@ -489,11 +489,9 @@ public class StickerView extends FrameLayout {
 
         invalidate();
     }
-
     public void flipCurrentSticker(int direction) {
         flip(handlingSticker, direction);
     }
-
     public void flip(@Nullable Sticker sticker, @Flip int direction) {
         if (sticker != null) {
             sticker.getCenterPoint(midPoint);
@@ -573,9 +571,10 @@ public class StickerView extends FrameLayout {
         }
         invalidate();
     }
-    @NonNull public StickerView addSticker(@NonNull Sticker sticker) {
+ @NonNull public StickerView addSticker(@NonNull Sticker sticker) {
         return addSticker(sticker, Sticker.Position.CENTER);
     }
+
     public StickerView addSticker(@NonNull final Sticker sticker,
                                   final @Sticker.Position int position) {
         if (ViewCompat.isLaidOut(this)) {
@@ -681,7 +680,7 @@ public class StickerView extends FrameLayout {
     @NonNull public List<BitmapStickerIcon> getIcons() {
         return icons;
     }
-    public void   setIcons(@NonNull List<BitmapStickerIcon> icons) {
+    public void setIcons(@NonNull List<BitmapStickerIcon> icons) {
         this.icons.clear();
         this.icons.addAll(icons);
         invalidate();

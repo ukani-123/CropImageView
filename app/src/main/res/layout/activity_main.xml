@@ -4,140 +4,281 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context="com.example.CropImageView.Activity.MainActivity">
+    android:id="@+id/mainLayout"
+    android:background="@color/white">
 
-
-    <LinearLayout
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:background="@color/white"
+        android:layout_height="50dp">
 
-        <FrameLayout
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1">
+            android:layout_height="match_parent">
 
             <ImageView
-                android:id="@+id/resultIv"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:src="@drawable/back_arrow"
+                android:adjustViewBounds="true"
+                android:layout_gravity="center" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:adjustViewBounds="true"
+                android:layout_weight="1"
+                android:text="@string/app_name"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:textSize="18sp"
+                android:textStyle="bold"/>
+
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:adjustViewBounds="true"
+                android:layout_gravity="center"
+                android:src="@drawable/check"/>
+
+        </LinearLayout>
+
+    </androidx.appcompat.widget.Toolbar>
+
+    <RelativeLayout
+        android:layout_below="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/bottom"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/topLayer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:id="@+id/captureLayout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_centerInParent="true"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginStart="30dp"
-                android:layout_marginTop="30dp"
-                android:layout_marginEnd="30dp"
-                android:layout_marginBottom="30dp"
-                android:adjustViewBounds="true"
-                android:scaleType="centerCrop" />
+                android:gravity="center"
+                android:animateLayoutChanges="true">
+                <!--StickerView-->
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:adjustViewBounds="true"
+                    android:layout_weight="1">
+
+                    <ImageView
+                        android:id="@+id/resultIv"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_centerInParent="true"
+                        android:layout_gravity="center_horizontal"
+                        android:adjustViewBounds="true"
+                        android:scaleType="centerCrop" />
 
 
-            <com.example.CropImageView.Helper.StickerView
-                android:id="@+id/stickerView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_centerInParent="true"
-                android:layout_gravity="center_horizontal"
-                android:layout_margin="30dp"
-                android:adjustViewBounds="true"
-                android:scaleType="centerCrop"
-                app:showBorder="true"
-                app:showIcons="true" />
+                    <com.example.CropImageView.Helper.StickerView
+                        android:id="@+id/stickerView"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_centerInParent="true"
+                        android:layout_gravity="center_horizontal"
+                        android:adjustViewBounds="true"
+                        android:scaleType="centerCrop"
+                        app:showBorder="true"
+                        app:showIcons="true" />
 
 
-            <EditText
-                android:id="@+id/edtText"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_centerInParent="true"
-                android:layout_gravity="center_horizontal"
-                android:layout_margin="30dp"
-                android:adjustViewBounds="true"
-                android:inputType="text"
-                android:scaleType="centerCrop"
-                android:visibility="gone"
-                app:showBorder="true"
-                app:showIcons="true" />
-
-            <com.example.CropImageView.Helper.SplashView
-                android:id="@+id/splashView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_centerInParent="true"
-                android:layout_gravity="center_horizontal"
-                android:layout_margin="30dp"
-                android:adjustViewBounds="true"
-                android:scaleType="centerCrop"
-                android:visibility="visible" />
+                    <com.example.CropImageView.Helper.SplashView
+                        android:id="@+id/splashView"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_centerInParent="true"
+                        android:layout_gravity="center_horizontal"
+                        android:adjustViewBounds="true"
+                        android:scaleType="centerCrop"
+                        android:visibility="visible" />
 
 
-        </FrameLayout>
+                </FrameLayout>
 
-        <SeekBar
-            android:id="@+id/sbBrightness"
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </RelativeLayout>
+
+    <!--1. Manage all your bottom controls here-->
+    <RelativeLayout
+        android:id="@+id/bottom"
+        android:layout_width="match_parent"
+        android:layout_height="155dp"
+        android:layout_alignParentBottom="true">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/subRecyclerView"
+            android:layout_above="@+id/tools"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:max="200"
-            android:min="50"
-            android:progress="0"
-            android:visibility="gone" />
-
-        <SeekBar
-            android:id="@+id/sbContrast"
+            android:background="@color/white"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            android:foregroundGravity="center"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/rcv_ffilter" />
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/colorRecyclerView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:max="150"
-            android:min="40"
-            android:progress="0"
-            android:visibility="gone" />
-
-        <SeekBar
-            android:id="@+id/sbSaturation"
+            android:background="@color/white"
+            android:orientation="horizontal"
+            android:layout_above="@+id/tools"
+            android:visibility="gone"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/adapter_color_item" />
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/fontRecyclerView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:max="100"
-            android:min="-100"
-            android:progress="0"
-            android:visibility="gone" />
-
-        <SeekBar
-            android:id="@+id/sbTemp"
+            android:background="@color/white"
+            android:orientation="horizontal"
+            android:layout_above="@+id/tools"
+            android:visibility="gone"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/font_adapter_item" />
+        <LinearLayout
+            android:id="@+id/tools"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:max="200"
-            android:min="-200"
-            android:progress="0"
-            android:visibility="gone" />
+            android:layout_height="70dp"
+            android:orientation="horizontal"
+            android:layout_alignParentBottom="true">
 
-        <SeekBar
-            android:id="@+id/sbSharp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:max="50"
-            android:min="-50"
-            android:progress="0"
-            android:visibility="gone" />
+            <LinearLayout
+                android:id="@+id/filter"
+                android:layout_width="wrap_content"
+                android:orientation="vertical"
+                android:layout_weight="1"
+                android:layout_height="wrap_content">
 
-        <SeekBar
-            android:id="@+id/sbFocus"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:max="50"
-            android:min="-50"
-            android:progress="0"
-            android:visibility="gone" />
+                <ImageView
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:adjustViewBounds="true"
+                    android:src="@drawable/filter" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="filter" />
+
+            </LinearLayout>
+            <LinearLayout
+                android:id="@+id/adjust"
+                android:layout_width="wrap_content"
+                android:orientation="vertical"
+                android:layout_weight="1"
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:adjustViewBounds="true"
+                    android:src="@drawable/adjust" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="adjust" />
+
+            </LinearLayout>
+            <LinearLayout
+                android:id="@+id/sticker"
+                android:layout_width="wrap_content"
+                android:orientation="vertical"
+                android:layout_weight="1"
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:adjustViewBounds="true"
+                    android:src="@drawable/sticker" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="sticker" />
+
+            </LinearLayout>
+            <LinearLayout
+                android:id="@+id/Text"
+                android:layout_width="wrap_content"
+                android:orientation="vertical"
+                android:layout_weight="1"
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:adjustViewBounds="true"
+                    android:src="@drawable/text" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="text" />
+
+            </LinearLayout>
+
+
+        </LinearLayout>
+
+    </RelativeLayout>
+
+    <!--2. Add you sticker layout here-->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/stickerLayout"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:layout_alignParentBottom="true"
+        android:orientation="vertical"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
 
         <com.google.android.material.tabs.TabLayout
+            android:layout_above="@+id/viewPager"
             android:id="@+id/tabLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:visibility="gone"
             app:layout_constraintBottom_toTopOf="@+id/viewPager"
             tools:ignore="MissingConstraints" />
 
@@ -145,129 +286,23 @@
             android:id="@+id/viewPager"
             android:layout_width="match_parent"
             android:layout_height="250dp"
-            android:visibility="gone"
+            android:visibility="visible"
             app:layout_constraintBottom_toBottomOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/subRecyclerView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@color/white"
-                android:orientation="horizontal"
-                android:foregroundGravity="center"
-                android:visibility="gone"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                tools:listitem="@layout/rcv_ffilter" />
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/colorRecyclerView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@color/white"
-                android:orientation="horizontal"
-                android:visibility="gone"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                tools:listitem="@layout/adapter_color_item" />
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/fontRecyclerView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@color/white"
-                android:orientation="horizontal"
-                android:visibility="gone"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                tools:listitem="@layout/font_adapter_item" />
-
-        </RelativeLayout>
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/mainRecyclerView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@color/white"
-                android:orientation="horizontal"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                tools:listitem="@layout/rcv_tools" />
-
-        </RelativeLayout>
-
-        <LinearLayout
-            android:id="@+id/mainBottom"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/white"
-            android:orientation="horizontal"
-            android:visibility="visible">
-
-            <ImageView
-                android:id="@+id/close"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:padding="10dp"
-                android:src="@drawable/close" />
-
-            <ImageView
-                android:id="@+id/reset"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:layout_weight="1"
-                android:padding="10dp"
-                android:src="@drawable/reset" />
-
-            <ImageView
-                android:id="@+id/Done"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:padding="10dp"
-                android:src="@drawable/check" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/txtBottom"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/white"
-            android:orientation="horizontal"
-            android:visibility="gone">
-
-            <ImageView
-                android:id="@+id/closetxt"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:padding="10dp"
-                android:src="@drawable/close" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_gravity="center"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:text="textEditor"
-                android:textSize="20dp" />
-
-            <ImageView
-                android:id="@+id/Donetxt"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:layout_gravity="end"
-                android:padding="10dp"
-                android:src="@drawable/check" />
-        </LinearLayout>
-    </LinearLayout>
-    <FrameLayout
-        android:id="@+id/changefragment"
+    <!--Add TextSticker View Here inside Constraint-->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/rlAddTextSticker"
         android:layout_width="match_parent"
-        android:visibility="gone"
-        android:layout_height="match_parent"/>
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:visibility="invisible">
+
+        <FrameLayout
+            android:id="@+id/changefragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </RelativeLayout>

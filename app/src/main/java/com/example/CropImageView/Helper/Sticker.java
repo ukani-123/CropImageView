@@ -17,11 +17,9 @@ import java.lang.annotation.RetentionPolicy;
 public abstract class Sticker {
 
 
-    @IntDef(flag = false, value = {
-      Position.CENTER}) @Retention(RetentionPolicy.SOURCE) public @interface Position {
-    int CENTER = 1;
-
-  }
+    @IntDef(flag = false, value = {Position.CENTER})
+    @Retention(RetentionPolicy.SOURCE) public @interface
+    Position { int CENTER = 1;}
 
   private final float[] matrixValues = new float[9];
   private final float[] unrotatedWrapperCorner = new float[8];
