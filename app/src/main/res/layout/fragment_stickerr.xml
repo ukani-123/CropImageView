@@ -4,8 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="150dp"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
-    tools:context=".Fragment.StickerFragment">
+    android:orientation="vertical">
 
 
     <androidx.recyclerview.widget.RecyclerView
@@ -14,7 +13,7 @@
         android:layout_margin="10dp"
         android:layout_gravity="center"
         app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-        app:spanCount="4"
+        app:spanCount="3"
         android:id="@+id/stickerRcv"/>
 
 </LinearLayout>

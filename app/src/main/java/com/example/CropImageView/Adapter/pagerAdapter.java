@@ -24,7 +24,6 @@ public class pagerAdapter extends FragmentPagerAdapter {
         stickerCat.clear();
         stickerCat = DataBinder.getStickerPathsList();
     }
-
     @NonNull
     @Override
     public Fragment getItem(int position) {
