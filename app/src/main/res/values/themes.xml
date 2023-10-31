@@ -1,6 +1,7 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
-    <style name="Base.Theme.CropImageView" parent="Theme.Material3.DayNight">
-    </style>
+<resources>
 
-    <style name="Theme.CropImageView" parent="Base.Theme.CropImageView" />
+    <style name="Base.Theme.CropImageView" parent="Theme.Material3.Light.NoActionBar"></style>
+
+    <style name="Theme.CropImageView" parent="Base.Theme.CropImageView">
+    </style>
 </resources>

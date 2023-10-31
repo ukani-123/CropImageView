@@ -14,11 +14,11 @@ import com.example.CropImageView.model.StickerPaths;
 import java.util.ArrayList;
 import java.util.List;
 
-public class pagerAdapter extends FragmentPagerAdapter {
+public class PagerAdapter extends FragmentPagerAdapter {
     Context context;
     List<StickerPaths> stickerCat = new ArrayList<>();
 
-    public pagerAdapter(@NonNull FragmentManager fm, Context context) {
+    public PagerAdapter(@NonNull FragmentManager fm, Context context) {
         super(fm);
         this.context = context;
         stickerCat.clear();

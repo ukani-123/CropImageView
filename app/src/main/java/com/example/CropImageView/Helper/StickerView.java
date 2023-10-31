@@ -595,7 +595,7 @@ public class StickerView extends FrameLayout {
         heightScaleFactor = (float) getHeight() / sticker.getDrawable().getIntrinsicHeight();
         scaleFactor = widthScaleFactor > heightScaleFactor ? heightScaleFactor : widthScaleFactor;
         sticker.getMatrix()
-                .postScale(scaleFactor / 2, scaleFactor / 2, getWidth() / 2, getHeight() / 2);
+                .postScale(scaleFactor / 4, scaleFactor / 4, getWidth() / 4, getHeight() / 4);
         handlingSticker = sticker;
         stickers.add(sticker);
         if (onStickerOperationListener != null) {
@@ -695,4 +695,12 @@ public class StickerView extends FrameLayout {
         void onStickerFlipped(@NonNull Sticker sticker);
         void onStickerDoubleTapped(@NonNull Sticker sticker);
     }
+
+    public void setHandlingSticker(Sticker handlingSticker) {
+        this.handlingSticker = this.handlingSticker;
+        this.handlingSticker = handlingSticker;
+        invalidate();
+    }
+
+
 }

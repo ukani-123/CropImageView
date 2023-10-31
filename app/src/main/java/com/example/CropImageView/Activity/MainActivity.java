@@ -1,7 +1,7 @@
 package com.example.CropImageView.Activity;
 
-
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.AssetManager;
@@ -17,6 +17,7 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
@@ -27,6 +28,7 @@ import android.text.Layout;
 import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
@@ -45,9 +47,8 @@ import com.example.CropImageView.Adapter.AdjustAdapter;
 import com.example.CropImageView.Adapter.ColorAdapter;
 import com.example.CropImageView.Adapter.FilterAdapter;
 import com.example.CropImageView.Adapter.FontAdapter;
+import com.example.CropImageView.Adapter.PagerAdapter;
 import com.example.CropImageView.Adapter.TextAdapter;
-import com.example.CropImageView.Adapter.ToolsAdapter;
-import com.example.CropImageView.Adapter.pagerAdapter;
 import com.example.CropImageView.Fragment.FullScreenEditTextFragment;
 import com.example.CropImageView.Fragment.StickerFragment;
 import com.example.CropImageView.Helper.BitmapStickerIcon;
@@ -55,6 +56,7 @@ import com.example.CropImageView.Helper.DataBinder;
 import com.example.CropImageView.Helper.DeleteIconEvent;
 import com.example.CropImageView.Helper.DrawableSticker;
 import com.example.CropImageView.Helper.FlipHorizontallyEvent;
+import com.example.CropImageView.Helper.SaveFileTask;
 import com.example.CropImageView.Helper.SplashSticker;
 import com.example.CropImageView.Helper.SplashView;
 import com.example.CropImageView.Helper.StickerView;
@@ -80,24 +82,24 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-
 public class MainActivity extends AppCompatActivity implements ClickSticker, SeekBar.OnSeekBarChangeListener {
     RecyclerView subRecyclerView, colorRecyclerView, fontRecyclerView;
-    Bitmap mOriginalBitmap;
-    LinearLayout filter, adjust, sticker, text;
+    Bitmap mOriginalBitmap, sample;
+    Bitmap mOperationalBitmap = null;
+    ImageButton colorDone, fontDone;
+    LinearLayout captureLayout, filter, adjust, sticker, text, colorLayout, fontLayout, splashLayout, focus;
     SeekBar sbBrightness, sbContrast, sbSaturation, sbSharp, sbTemp;
-    ToolsAdapter toolsAdapter;
     ConstraintLayout stickerLayout;
     FilterAdapter filterAdapter;
     AdjustAdapter adjustAdapter;
     SplashView splashView;
     StickerView stickerView;
     TextAdapter textAdapter;
+    PagerAdapter pagerAdapter;
     ViewPager viewPager;
     int click = 0;
     TabLayout tabLayout;
-    Bitmap mOperationalBitmap = null;
-    private ImageView resultIv, imgDone, imgClose;
+    private ImageView splashResultIv, resultIv, imgDone, imgClose, splashImgDone, splashImgClose;
 
     public static ArrayList<Integer> fetchTextStickerColor() {
         ArrayList<Integer> list = new ArrayList<>();
@@ -201,6 +203,63 @@ public class MainActivity extends AppCompatActivity implements ClickSticker, See
         return list;
     }
 
+    public static String saveToAlbum(Bitmap bitmap, final Context context) {
+        File file = null;
+        String fileName = System.currentTimeMillis() + ".jpg";
+        File root = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), "DCIM");
+        if (root.mkdirs() || root.isDirectory()) {
+            file = new File(root, fileName);
+        }
+        FileOutputStream os = null;
+
+        try {
+            os = new FileOutputStream(file);
+
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, os);
+
+            os.flush();
+
+        } catch (FileNotFoundException e) {
+            Log.e("TAG", e.getMessage());
+        } catch (IOException e) {
+            Log.e("TAG", e.getMessage());
+        } finally {
+            try {
+                if (os != null) {
+                    os.close();
+                }
+            } catch (IOException e) {
+                Log.e("TAG", e.getMessage());
+            }
+        }
+
+        if (file == null) {
+            return "";
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            String path = null;
+            try {
+                path = file.getCanonicalPath();
+            } catch (IOException e) {
+                Log.e("TAG", e.getMessage());
+            }
+            MediaScannerConnection.scanFile(context, new String[]{path}, null, new MediaScannerConnection.OnScanCompletedListener() {
+                @Override
+                public void onScanCompleted(String path, Uri uri) {
+                    Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+                    mediaScanIntent.setData(uri);
+                    context.sendBroadcast(mediaScanIntent);
+                }
+            });
+        } else {
+            String relationDir = file.getParent();
+            File file1 = new File(relationDir);
+            context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_MOUNTED, Uri.fromFile(file1.getAbsoluteFile())));
+        }
+        return root + "/" + fileName;
+    }
+
     @SuppressLint({"MissingInflatedId", "WrongViewCast"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -215,29 +274,45 @@ public class MainActivity extends AppCompatActivity implements ClickSticker, See
         DataBinder.listAssetFiles(this, "Sticker");
         tabLayout = findViewById(R.id.tabLayout);
         resultIv = findViewById(R.id.resultIv);
+        splashResultIv = findViewById(R.id.splashResultIv);
         viewPager = findViewById(R.id.viewPager);
         stickerView = findViewById(R.id.stickerView);
         splashView = findViewById(R.id.splashView);
         imgDone = findViewById(R.id.imgDone);
         imgClose = findViewById(R.id.imgClose);
 
+
         filter = findViewById(R.id.filter);
         adjust = findViewById(R.id.adjust);
         sticker = findViewById(R.id.sticker);
         text = findViewById(R.id.Text);
+        colorLayout = findViewById(R.id.colorLayout);
+        fontLayout = findViewById(R.id.fontLayout);
+        splashLayout = findViewById(R.id.splashLayout);
+        splashImgClose = findViewById(R.id.splashImgClose);
+        focus = findViewById(R.id.focus);
+
+        colorDone = findViewById(R.id.colorDone);
+        fontDone = findViewById(R.id.fontDone);
+        splashImgDone = findViewById(R.id.splashImgDone);
 
         stickerLayout = findViewById(R.id.stickerLayout);
 
         subRecyclerView = findViewById(R.id.subRecyclerView);
         colorRecyclerView = findViewById(R.id.colorRecyclerView);
         fontRecyclerView = findViewById(R.id.fontRecyclerView);
-        resultIv.setImageBitmap(mOriginalBitmap);
 
         sbBrightness = findViewById(R.id.sbBrightness);
         sbContrast = findViewById(R.id.sbContrast);
         sbSaturation = findViewById(R.id.sbSaturation);
         sbTemp = findViewById(R.id.sbTemp);
         sbSharp = findViewById(R.id.sbSharp);
+
+        resultIv.setImageBitmap(mOriginalBitmap);
+
+        captureLayout = findViewById(R.id.captureLayout);
+
+        pagerAdapter = new PagerAdapter(getSupportFragmentManager(), MainActivity.this);
 
         ArrayList<ColorFilter> data = new ArrayList<>();
         data.add(null);
@@ -273,23 +348,87 @@ public class MainActivity extends AppCompatActivity implements ClickSticker, See
         adjustList.add(new AdjustModel("Saturation", R.drawable.saturation));
         adjustList.add(new AdjustModel("Temp", R.drawable.temp));
         adjustList.add(new AdjustModel("Sharp", R.drawable.sharp));
-        adjustList.add(new AdjustModel("Focus", R.drawable.focus));
 
         ArrayList<TextTool> textTool = new ArrayList<>();
-        textTool.add(new TextTool("color", R.drawable.fontcolor));
+        textTool.add(new TextTool("color", R.drawable.color));
         textTool.add(new TextTool("Bg Color", R.drawable.bgcolor));
         textTool.add(new TextTool("Font", R.drawable.font));
         textTool.add(new TextTool("Align", R.drawable.center));
+
+        sbBrightness.setOnSeekBarChangeListener(this);
+        sbContrast.setOnSeekBarChangeListener(this);
+        sbSaturation.setOnSeekBarChangeListener(this);
+        sbTemp.setOnSeekBarChangeListener(this);
+        sbSharp.setOnSeekBarChangeListener(this);
+
+        colorDone.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                gone(colorLayout);
+                visible(subRecyclerView);
+                txtAdapter();
+            }
+        });
+        fontDone.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                gone(fontLayout);
+                visible(subRecyclerView);
+                txtAdapter();
+            }
+        });
+
+
+        imgDone.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                stickerView.setHandlingSticker(null);
+                new SaveFileTask(MainActivity.this, captureLayout) {
+                    @Override
+                    public void OnSaveFile(String path) {
+                        try {
+                            Toast.makeText(MainActivity.this, "Save", Toast.LENGTH_SHORT).show();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }.execute();
+            }
+        });
+
         filter.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View view) {
                 visible(subRecyclerView);
-                gone(colorRecyclerView, fontRecyclerView, splashView, stickerLayout);
+                gone(colorLayout, fontLayout, splashView, stickerLayout, sbBrightness, sbContrast, sbSaturation, sbSharp);
+                gone(sbTemp);
+
+                ImageView text = findViewById(R.id.imgText);
+                text.setImageResource(R.drawable.text);
+
+                ImageView adjust = findViewById(R.id.imgAdjust);
+                adjust.setImageResource(R.drawable.adjust);
+
+                ImageView sticker = findViewById(R.id.imgSticker);
+                sticker.setImageResource(R.drawable.sticker);
+
+                ImageView focus = findViewById(R.id.imgFocus);
+                focus.setImageResource(R.drawable.focus);
+
+                white(text, adjust, sticker, focus);
+
+                ImageView filter = findViewById(R.id.imgFilter);
+                red(filter);
+
                 stickerUnLock();
                 subRecyclerView.setAdapter(filterAdapter = new FilterAdapter(MainActivity.this, data, new Filter() {
                     @Override
                     public void onClickItem(ColorFilter filter) {
-                        resultIv.setColorFilter(filter);
+                        BitmapDrawable drawable = (BitmapDrawable) resultIv.getDrawable();
+                        drawable.setColorFilter(filter);
+                        resultIv.setImageDrawable(drawable);
+                        mOperationalBitmap = drawable.getBitmap();
                     }
                 }));
                 filterAdapter.setBitmap(mOriginalBitmap);
@@ -300,41 +439,48 @@ public class MainActivity extends AppCompatActivity implements ClickSticker, See
             public void onClick(View view) {
                 stickerUnLock();
                 visible(subRecyclerView);
-                gone(colorRecyclerView, fontRecyclerView, splashView, stickerLayout);
+                gone(colorLayout, fontLayout, splashView, stickerLayout);
+
+                ImageView filter = findViewById(R.id.imgFilter);
+                filter.setImageResource(R.drawable.filter);
+
+                ImageView text = findViewById(R.id.imgText);
+                text.setImageResource(R.drawable.text);
+
+                ImageView sticker = findViewById(R.id.imgSticker);
+                sticker.setImageResource(R.drawable.sticker);
+
+                ImageView focus = findViewById(R.id.imgFocus);
+                focus.setImageResource(R.drawable.focus);
+
+                white(filter, text, sticker, focus);
+
+                ImageView adjust = findViewById(R.id.imgAdjust);
+                red(adjust);
+
                 subRecyclerView.setAdapter(adjustAdapter = new AdjustAdapter(MainActivity.this, adjustList, new Adjust() {
                     @Override
                     public void onClickAdjust(int position) {
                         if (position == 0) {
                             stickerUnLock();
                             visible(sbBrightness);
-                            gone(sbContrast, colorRecyclerView, sbSaturation, sbTemp, sbSharp, splashView, stickerLayout);
+                            gone(sbContrast, colorLayout, sbSaturation, sbTemp, sbSharp, fontLayout, splashView, stickerLayout);
                         } else if (position == 1) {
                             stickerUnLock();
                             visible(sbContrast);
-                            gone(sbBrightness, colorRecyclerView, sbSaturation, sbTemp, sbSharp, splashView, stickerLayout);
+                            gone(sbBrightness, colorLayout, sbSaturation, sbTemp, sbSharp, fontLayout, splashView, stickerLayout);
                         } else if (position == 2) {
                             stickerUnLock();
                             visible(sbSaturation);
-                            gone(sbBrightness, colorRecyclerView, sbContrast, sbTemp, sbSharp, splashView, stickerLayout);
+                            gone(sbBrightness, colorLayout, sbContrast, sbTemp, sbSharp, splashView, fontLayout, stickerLayout);
                         } else if (position == 3) {
                             stickerUnLock();
                             visible(sbTemp);
-                            gone(sbContrast, colorRecyclerView, sbSaturation, sbBrightness, sbSharp, splashView, stickerLayout);
+                            gone(sbContrast, colorLayout, sbSaturation, sbBrightness, sbSharp, splashView, fontLayout, stickerLayout);
                         } else if (position == 4) {
                             stickerUnLock();
                             visible(sbSharp);
-                            gone(sbContrast, colorRecyclerView, sbSaturation, sbBrightness, sbTemp, splashView, stickerLayout);
-                        } else if (position == 5) {
-                            visible(splashView);
-                            gone(sbContrast, colorRecyclerView, sbSaturation, sbBrightness, sbSharp, sbTemp, stickerLayout);
-                            splashView.setCurrentSplashMode(SplashView.SHAPE);
-                            splashView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
-                            splashView.setImageBitmap(NativeStackBlur.process(mOperationalBitmap, 150));
-                            SplashSticker splashSticker = new SplashSticker(((BitmapDrawable) getDrawable(R.drawable.blur_1_mask)).getBitmap(), ((BitmapDrawable) getDrawable(R.drawable.blur_1_shadow)).getBitmap());
-                            splashView.addSticker(splashSticker);
-                            splashView.removeTouchIcon();
-                            stickerView.setLocked(true);
-                            splashView.setLock(false);
+                            gone(sbContrast, colorLayout, sbSaturation, sbBrightness, sbTemp, splashView, fontLayout, stickerLayout);
                         }
                         gone(tabLayout);
                     }
@@ -342,14 +488,26 @@ public class MainActivity extends AppCompatActivity implements ClickSticker, See
             }
         });
         sticker.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View view) {
                 visible(stickerLayout);
                 visible(viewPager);
                 visible(tabLayout);
+                gone(subRecyclerView, splashView, sbBrightness, sbContrast, sbSaturation, sbSharp, sbTemp, colorLayout);
+                ImageView adjust = findViewById(R.id.imgAdjust);
+                adjust.setImageResource(R.drawable.adjust);
+                ImageView filter = findViewById(R.id.imgFilter);
+                filter.setImageResource(R.drawable.filter);
+                ImageView text = findViewById(R.id.imgText);
+                text.setImageResource(R.drawable.text);
+                ImageView focus = findViewById(R.id.imgFocus);
+                focus.setImageResource(R.drawable.focus);
+                white(adjust, filter, text, focus);
+                ImageView sticker = findViewById(R.id.imgSticker);
+                red(sticker);
                 stickerUnLock();
-                gone(subRecyclerView, splashView);
-                viewPager.setAdapter(new pagerAdapter(getSupportFragmentManager(), MainActivity.this));
+                viewPager.setAdapter(pagerAdapter);
                 tabLayout.setupWithViewPager(viewPager);
             }
         });
@@ -358,30 +516,84 @@ public class MainActivity extends AppCompatActivity implements ClickSticker, See
             public void onClick(View view) {
                 showFullScreenEditTextFragment();
                 visible(subRecyclerView);
-                gone(fontRecyclerView, sbBrightness, sbContrast, colorRecyclerView, sbSaturation, sbTemp, sbSharp, stickerLayout);
+                gone(fontLayout, sbBrightness, sbContrast, colorLayout, sbSaturation, sbTemp, sbSharp, stickerLayout);
+
+                ImageView filter = findViewById(R.id.imgFilter);
+                filter.setImageResource(R.drawable.filter);
+
+                ImageView sticker = findViewById(R.id.imgSticker);
+                sticker.setImageResource(R.drawable.sticker);
+
+                ImageView adjust = findViewById(R.id.imgAdjust);
+                adjust.setImageResource(R.drawable.adjust);
+
+                ImageView focus = findViewById(R.id.imgFocus);
+                focus.setImageResource(R.drawable.focus);
+
+                ImageView text = findViewById(R.id.imgText);
+
+                white(filter, sticker, adjust, focus);
+                red(text);
+
                 txtAdapter();
             }
         });
-        imgDone.setOnClickListener(new View.OnClickListener() {
+
+        focus.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                gone(colorRecyclerView, fontRecyclerView);
-                visible(subRecyclerView);
-                txtAdapter();
+
+                ImageView filter = findViewById(R.id.imgFilter);
+                filter.setImageResource(R.drawable.filter);
+
+                ImageView sticker = findViewById(R.id.imgSticker);
+                sticker.setImageResource(R.drawable.sticker);
+
+                ImageView adjust = findViewById(R.id.imgAdjust);
+                adjust.setImageResource(R.drawable.adjust);
+
+                ImageView text = findViewById(R.id.imgText);
+                text.setImageResource(R.drawable.text);
+
+                ImageView focus = findViewById(R.id.imgFocus);
+
+                white(filter, sticker, adjust, text);
+                red(focus);
+
+                visible(splashLayout);
+                splashResultIv.setImageBitmap(mOperationalBitmap);
+                splashView.setCurrentSplashMode(SplashView.SHAPE);
+                splashView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+                splashView.setImageBitmap(NativeStackBlur.process(mOperationalBitmap, 50));
+                SplashSticker splashSticker = new SplashSticker(((BitmapDrawable) getDrawable(R.drawable.blur_1_mask)).getBitmap(), ((BitmapDrawable) getDrawable(R.drawable.blur_1_shadow)).getBitmap());
+                splashView.addSticker(splashSticker);
+                splashView.removeTouchIcon();
+                splashView.setLock(false);
+
+                splashImgDone.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        gone(splashLayout);
+                        sample = splashView.getBitmap(mOperationalBitmap);
+                        resultIv.setImageBitmap(sample);
+                    }
+                });
+                splashImgClose.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        gone(splashLayout);
+                        resultIv.setImageBitmap(mOperationalBitmap);
+                    }
+                });
             }
         });
+
         imgClose.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 exitDialog();
             }
         });
-
-        sbBrightness.setOnSeekBarChangeListener(this);
-        sbContrast.setOnSeekBarChangeListener(this);
-        sbSaturation.setOnSeekBarChangeListener(this);
-        sbTemp.setOnSeekBarChangeListener(this);
-        sbSharp.setOnSeekBarChangeListener(this);
     }
 
     @Override
@@ -423,7 +635,7 @@ public class MainActivity extends AppCompatActivity implements ClickSticker, See
         float rT = temperature > 0 ? temperature : 0;
         float bT = temperature < 0 ? -temperature : 0;
         ColorMatrix colorMatrix = new ColorMatrix();
-        colorMatrix.set(new float[]{1, 0, 0, 0, rT * 255, 0, 1, 0, 0, 0, 0, 0, 1, 0, bT * 255, 0, 0, 0, 1, 0});
+        colorMatrix.set(new float[]{1, 0, 0, 0, rT * 255, 0, 1, 0, 0, 0, 0, 0, 1, 0, bT * 265, 0, 0, 0, 1, 0});
         return applyColorMatrix(source, colorMatrix);
     }
 
@@ -464,6 +676,8 @@ public class MainActivity extends AppCompatActivity implements ClickSticker, See
                 if (!strSticker.isEmpty()) {
                     TextSticker textSticker = new TextSticker(MainActivity.this);
                     textSticker.setText(strSticker);
+                    textSticker.setTextColor(Color.WHITE);
+                    textSticker.setTextBackgroundColor(Color.BLACK);
                     stickerView.addSticker(textSticker);
                     textSticker.resizeText();
                     stickerUnLock();
@@ -496,9 +710,8 @@ public class MainActivity extends AppCompatActivity implements ClickSticker, See
             e.printStackTrace();
         }
         stickerView.addSticker(new DrawableSticker(new BitmapDrawable(getResources(), bitmap)));
-        gone(tabLayout,viewPager);
+        gone(tabLayout, viewPager);
     }
-
 
     @Override
     public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
@@ -506,6 +719,7 @@ public class MainActivity extends AppCompatActivity implements ClickSticker, See
             if (seekBar == sbBrightness) {
                 float brightness = (float) (sbBrightness.getProgress() - 100) / 100f;
                 resultIv.setImageBitmap(applyBrightness(mOperationalBitmap, brightness));
+
             } else if (seekBar == sbContrast) {
                 float contrast = (float) sbContrast.getProgress() / 100f;
                 resultIv.setImageBitmap(applyContrast(mOperationalBitmap, contrast));
@@ -524,12 +738,29 @@ public class MainActivity extends AppCompatActivity implements ClickSticker, See
 
     @Override
     public void onStartTrackingTouch(SeekBar seekBar) {
+        Log.d("Seekbar", "onStartTrackingTouch: ");
 
     }
 
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
-
+        Log.d("Seekbar", "onStopTrackingTouch: ");
+        if (seekBar == sbBrightness) {
+            float brightness = (float) (sbBrightness.getProgress() - 100) / 100f;
+            mOperationalBitmap = applyBrightness(mOperationalBitmap, brightness);
+        }else if (seekBar == sbContrast) {
+            float contrast = (float) sbContrast.getProgress() / 100f;
+            mOperationalBitmap = applyContrast(mOperationalBitmap, contrast);
+        } else if (seekBar == sbSaturation) {
+            float saturation = (float) sbSaturation.getProgress() / 100f;
+            mOperationalBitmap = applySaturation(mOperationalBitmap, saturation);
+        } else if (seekBar == sbSharp) {
+            float sharpness = (float) sbSharp.getProgress() / 100f;
+            mOperationalBitmap = applySharpness(mOperationalBitmap, sharpness);
+        } else if (seekBar == sbTemp) {
+            float temperature = (float) (sbTemp.getProgress() - 100) / 100f;
+            mOperationalBitmap = applyTemperature(mOperationalBitmap, temperature);
+        }
     }
 
     public void visible(View view) {
@@ -547,45 +778,11 @@ public class MainActivity extends AppCompatActivity implements ClickSticker, See
         view7.setVisibility(View.GONE);
     }
 
-    public void gone(View view, View view1, View view2, View view3, View view4, View view5, View view6) {
-        view.setVisibility(View.GONE);
-        view1.setVisibility(View.GONE);
-        view2.setVisibility(View.GONE);
-        view3.setVisibility(View.GONE);
-        view4.setVisibility(View.GONE);
-        view5.setVisibility(View.GONE);
-        view6.setVisibility(View.GONE);
-    }
-
     public void gone(View view, View view1, View view2, View view3) {
         view.setVisibility(View.GONE);
         view1.setVisibility(View.GONE);
         view2.setVisibility(View.GONE);
         view3.setVisibility(View.GONE);
-    }
-
-    public void gone(View view, View view1, View view2, View view3, View view4, View view5) {
-        view.setVisibility(View.GONE);
-        view1.setVisibility(View.GONE);
-        view2.setVisibility(View.GONE);
-        view3.setVisibility(View.GONE);
-        view4.setVisibility(View.GONE);
-        view5.setVisibility(View.GONE);
-    }
-
-    public void gone(View view, View view1, View view2, View view3, View view4) {
-        view.setVisibility(View.GONE);
-        view1.setVisibility(View.GONE);
-        view2.setVisibility(View.GONE);
-        view3.setVisibility(View.GONE);
-        view4.setVisibility(View.GONE);
-    }
-
-    public void gone(View view, View view1, View view2) {
-        view.setVisibility(View.GONE);
-        view1.setVisibility(View.GONE);
-        view2.setVisibility(View.GONE);
-
     }
 
     public void gone(View view, View view1) {
@@ -600,7 +797,7 @@ public class MainActivity extends AppCompatActivity implements ClickSticker, See
 
     public void txtAdapter() {
         ArrayList<TextTool> textTool = new ArrayList<>();
-        textTool.add(new TextTool("color", R.drawable.fontcolor));
+        textTool.add(new TextTool("color", R.drawable.color));
         textTool.add(new TextTool("Bg Color", R.drawable.bgcolor));
         textTool.add(new TextTool("Font", R.drawable.font));
         textTool.add(new TextTool("Align", R.drawable.center));
@@ -610,8 +807,8 @@ public class MainActivity extends AppCompatActivity implements ClickSticker, See
                 switch (position) {
                     case 0:
                         stickerUnLock();
-                        visible(colorRecyclerView);
-                        gone(fontRecyclerView);
+                        visible(colorLayout);
+                        gone(fontLayout, subRecyclerView);
                         colorRecyclerView.setAdapter(new ColorAdapter(MainActivity.this, fetchTextStickerColor(), new ColorInter() {
                             @Override
                             public void onclickColor(int position) {
@@ -626,8 +823,8 @@ public class MainActivity extends AppCompatActivity implements ClickSticker, See
                         break;
                     case 1:
                         stickerUnLock();
-                        visible(colorRecyclerView);
-                        gone(fontRecyclerView);
+                        visible(colorLayout);
+                        gone(fontLayout, subRecyclerView);
                         colorRecyclerView.setAdapter(new ColorAdapter(MainActivity.this, fetchTextStickerColor(), new ColorInter() {
                             @Override
                             public void onclickColor(int position) {
@@ -642,8 +839,8 @@ public class MainActivity extends AppCompatActivity implements ClickSticker, See
                         break;
                     case 2:
                         stickerUnLock();
-                        visible(fontRecyclerView);
-                        gone(colorRecyclerView);
+                        visible(fontLayout);
+                        gone(colorLayout, subRecyclerView);
                         fontRecyclerView.setAdapter(new FontAdapter(MainActivity.this, new FontClick() {
                             @Override
                             public void onFontClick(Typeface typeface) {
@@ -659,7 +856,7 @@ public class MainActivity extends AppCompatActivity implements ClickSticker, See
                     case 3:
                         stickerUnLock();
                         textTool.clear();
-                        textTool.add(new TextTool("color", R.drawable.fontcolor));
+                        textTool.add(new TextTool("color", R.drawable.color));
                         textTool.add(new TextTool("Bg Color", R.drawable.bgcolor));
                         textTool.add(new TextTool("Font", R.drawable.font));
                         if (stickerView.getCurrentSticker() instanceof TextSticker) {
@@ -687,62 +884,29 @@ public class MainActivity extends AppCompatActivity implements ClickSticker, See
         }));
 
     }
-    public String saveToAlbum(Bitmap bitmap1) {
-        File file = null;
-        String fileName = System.currentTimeMillis() + ".png";
-        File root = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), "CropImage/");
-        if (!root.exists()){
-            root.mkdir();
-        }
-        if (root.mkdirs() || root.isDirectory()) {
-            file = new File(root, fileName);
-        }
-        FileOutputStream os = null;
-        try {
-            if (resultIv.equals("")) {
-                Toast.makeText(this, "00", Toast.LENGTH_SHORT).show();
-            }
-            os = new FileOutputStream(file);
-            bitmap1.compress(Bitmap.CompressFormat.PNG, 100, os);
-            os.flush();
-        } catch (FileNotFoundException e) {
-            Log.e("TAG", e.getMessage());
-        } catch (IOException e) {
-            Log.e("TAG", e.getMessage());
-        } finally {
-            try {
-                if (os != null) {
-                    os.close();
-                }
-            } catch (IOException e) {
-                Log.e("TAG", e.getMessage());
-            }
-        }
-        if (file == null) {
-            return "";
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            String path = null;
-            try {
-                path = file.getCanonicalPath();
-            } catch (IOException e) {
-                Log.e("TAG", e.getMessage());
-            }
-            MediaScannerConnection.scanFile(MainActivity.this, new String[]{path}, null,
-                    new MediaScannerConnection.OnScanCompletedListener() {
-                        @Override
-                        public void onScanCompleted(String path, Uri uri) {
-                            Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-                            mediaScanIntent.setData(uri);
-                            sendBroadcast(mediaScanIntent);
-                        }
-                    });
-        } else {
-            String relationDir = file.getParent();
-            File file1 = new File(relationDir);
-            sendBroadcast(new Intent(Intent.ACTION_MEDIA_MOUNTED, Uri.fromFile(file1.getAbsoluteFile())));
-        }
-        return root + "/" + fileName;
+
+    public void white(ImageView imageView, ImageView imageView1, ImageView imageView2, ImageView imageView3) {
+        Drawable drawable = imageView.getDrawable();
+        drawable.setColorFilter(new PorterDuffColorFilter(Color.WHITE, PorterDuff.Mode.MULTIPLY));
+        imageView.setImageDrawable(drawable);
+
+        Drawable drawable1 = imageView1.getDrawable();
+        drawable1.setColorFilter(new PorterDuffColorFilter(Color.WHITE, PorterDuff.Mode.MULTIPLY));
+        imageView1.setImageDrawable(drawable1);
+
+        Drawable drawable2 = imageView2.getDrawable();
+        drawable2.setColorFilter(new PorterDuffColorFilter(Color.WHITE, PorterDuff.Mode.MULTIPLY));
+        imageView2.setImageDrawable(drawable2);
+
+        Drawable drawable3 = imageView3.getDrawable();
+        drawable3.setColorFilter(new PorterDuffColorFilter(Color.WHITE, PorterDuff.Mode.MULTIPLY));
+        imageView3.setImageDrawable(drawable3);
+    }
+
+    public void red(ImageView imageView) {
+        Drawable drawable = imageView.getDrawable();
+        drawable.setColorFilter(new PorterDuffColorFilter(Color.RED, PorterDuff.Mode.MULTIPLY));
+        imageView.setImageDrawable(drawable);
     }
 
     public void exitDialog() {

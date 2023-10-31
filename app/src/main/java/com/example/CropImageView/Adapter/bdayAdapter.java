@@ -2,7 +2,6 @@ package com.example.CropImageView.Adapter;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -47,7 +46,6 @@ public class bdayAdapter extends RecyclerView.Adapter<bdayAdapter.ViewHolder> {
 
     @Override
     public int getItemCount() {
-        Log.d("TAG", "getItemCount: " + paths.size());
         return paths.size();
     }
 

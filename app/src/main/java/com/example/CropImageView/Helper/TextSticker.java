@@ -164,7 +164,6 @@ public class TextSticker extends Sticker {
 
     @NonNull
     public TextSticker setTextBackgroundColor(@ColorInt int color) {
-
         this.backgroundColor = color;
         return this;
     }

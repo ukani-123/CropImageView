@@ -2,6 +2,10 @@ package com.example.CropImageView.Adapter;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
+import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,6 +26,7 @@ public class AdjustAdapter extends RecyclerView.Adapter<AdjustAdapter.ViewHolder
     int selectedItem = -1;
     Adjust adjust;
 
+
     public AdjustAdapter(Context context, ArrayList<AdjustModel> adjustList, Adjust adjust) {
         this.context = context;
         this.adjustList = adjustList;
@@ -41,9 +46,13 @@ public class AdjustAdapter extends RecyclerView.Adapter<AdjustAdapter.ViewHolder
         holder.txtTool.setText(adjustList.get(position).getName());
 
         if (position == selectedItem) {
-            holder.itemView.setBackgroundResource(R.drawable.shape);
+            Drawable drawable = holder.imageView.getDrawable();
+            drawable.setColorFilter(new PorterDuffColorFilter(Color.RED, PorterDuff.Mode.MULTIPLY));
+            holder.imageView.setImageDrawable(drawable);
         } else {
-            holder.itemView.setBackgroundResource(0);
+            Drawable drawable = holder.imageView.getDrawable();
+            drawable.setColorFilter(new PorterDuffColorFilter(Color.WHITE, PorterDuff.Mode.MULTIPLY));
+            holder.imageView.setImageDrawable(drawable);
         }
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
